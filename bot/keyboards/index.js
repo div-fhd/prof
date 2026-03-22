@@ -4,26 +4,16 @@ const config = require('../../config');
 // ─────────────────────────────────────────────────────────────────────────────
 //  Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Telegram inline URL buttons MUST start with http:// or https://.
- * Any other value (wallet address, plain text, t.me without protocol, etc.)
- * causes a 400 Bad Request.  We validate before deciding button type.
- */
 const isValidHttpUrl = (str) => {
   try {
     const u = new URL(str);
     return u.protocol === 'https:' || u.protocol === 'http:';
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Reply keyboards  (persistent bottom bar)
+//  Reply keyboards
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** Persistent main menu at the bottom */
 const mainMenuKeyboard = () => ({
   reply_markup: {
     keyboard: [
@@ -35,7 +25,6 @@ const mainMenuKeyboard = () => ({
   },
 });
 
-/** Single-use cancel button while waiting for user input */
 const cancelKeyboard = () => ({
   reply_markup: {
     keyboard: [[{ text: '❌ إلغاء' }]],
@@ -49,12 +38,9 @@ const cancelKeyboard = () => ({
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Deposit – wallet buttons.
- *
- * If a wallet link is a valid https:// URL → use Telegram's url button (opens browser).
- * If it is anything else (wallet address, plain text, t.me without https://) →
- * use a callback_data button so the handler can display the address as text.
- * This prevents the "Wrong HTTP URL" 400 error from Telegram.
+ * Deposit screen — wallet buttons + "أرسلت الدفع" confirmation button.
+ * Telegram url buttons MUST start with https:// or http://.
+ * Wallet addresses or plain text → use callback_data instead.
  */
 const depositKeyboard = () => {
   const walletButtons = config.payment.wallets.map((w, i) => {
@@ -68,13 +54,13 @@ const depositKeyboard = () => {
     reply_markup: {
       inline_keyboard: [
         ...walletButtons,
+        [{ text: '✅ أرسلت الدفع — سجّل طلبي', callback_data: 'deposit_confirm' }],
         [{ text: '🔙 رجوع', callback_data: 'back_main' }],
       ],
     },
   };
 };
 
-/** After profit calculation */
 const profitKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -86,7 +72,6 @@ const profitKeyboard = () => ({
   },
 });
 
-/** Account levels screen */
 const accountLevelsKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -97,7 +82,6 @@ const accountLevelsKeyboard = () => ({
   },
 });
 
-/** My account dashboard */
 const myAccountKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -115,7 +99,6 @@ const myAccountKeyboard = () => ({
   },
 });
 
-/** Bot started/stopped confirmation */
 const afterBotControlKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -125,7 +108,6 @@ const afterBotControlKeyboard = () => ({
   },
 });
 
-/** Withdraw info screen */
 const withdrawKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -136,7 +118,6 @@ const withdrawKeyboard = () => ({
   },
 });
 
-/** After withdrawal confirmed */
 const afterWithdrawKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -146,7 +127,6 @@ const afterWithdrawKeyboard = () => ({
   },
 });
 
-/** Account statement */
 const statementKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -156,7 +136,6 @@ const statementKeyboard = () => ({
   },
 });
 
-/** Generic back-only screen */
 const backOnlyKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
@@ -166,10 +145,8 @@ const backOnlyKeyboard = () => ({
 });
 
 module.exports = {
-  // reply keyboards
   mainMenuKeyboard,
   cancelKeyboard,
-  // inline keyboards
   depositKeyboard,
   profitKeyboard,
   accountLevelsKeyboard,
