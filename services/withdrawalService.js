@@ -4,19 +4,15 @@ const { logStatement }            = require('./userService');
 const config                      = require('../config');
 const logger                      = require('../utils/logger');
 
-/**
- * Record a withdrawal request.
- */
-const createWithdrawalRequest = async ({ telegramId, amount, network = 'TRC20' }) => {
+const createWithdrawalRequest = async ({ telegramId, amount, network = 'TRC20', walletAddress = null }) => {
   const fee       = parseFloat((amount * config.bot.withdrawalFee).toFixed(2));
   const netAmount = parseFloat((amount - fee).toFixed(2));
 
   const withdrawal = await WithdrawalRequest.create({
     telegramId: String(telegramId),
-    amount,
-    fee,
-    netAmount,
+    amount, fee, netAmount,
     network,
+    walletAddress,
     status: 'pending',
   });
 
@@ -24,8 +20,7 @@ const createWithdrawalRequest = async ({ telegramId, amount, network = 'TRC20' }
 
   await logStatement({
     telegramId,
-    type:          'withdrawal',
-    amount,
+    type: 'withdrawal', amount,
     balanceBefore: user ? user.balance : 0,
     balanceAfter:  user ? user.balance : 0,
     description:   `Withdrawal request ${amount} USDT`,
@@ -34,19 +29,16 @@ const createWithdrawalRequest = async ({ telegramId, amount, network = 'TRC20' }
     status:        'pending',
   });
 
-  logger.info(`Withdrawal created: ${telegramId} — ${amount} USDT`);
+  logger.info(`Withdrawal created: ${telegramId} — ${amount} USDT — wallet: ${walletAddress}`);
   return withdrawal;
 };
 
-/**
- * Admin: complete withdrawal → debit balance.
- */
 const completeWithdrawal = async (withdrawalId) => {
   const w = await WithdrawalRequest.findById(withdrawalId);
   if (!w) throw new Error('Withdrawal not found');
   if (w.status !== 'pending' && w.status !== 'processing') throw new Error('Already processed');
 
-  w.status      = 'completed';
+  w.status = 'completed';
   w.processedAt = new Date();
   await w.save();
 
@@ -59,18 +51,13 @@ const completeWithdrawal = async (withdrawalId) => {
     await user.recalculateLevel();
 
     await logStatement({
-      telegramId:    w.telegramId,
-      type:          'withdrawal',
-      amount:        w.amount,
-      balanceBefore: before,
-      balanceAfter:  user.balance,
-      description:   `Withdrawal completed ${w.amount} USDT`,
+      telegramId: w.telegramId, type: 'withdrawal', amount: w.amount,
+      balanceBefore: before, balanceAfter: user.balance,
+      description: `Withdrawal completed ${w.amount} USDT`,
       descriptionAr: `✅ تم تنفيذ السحب: ${w.amount} USDT`,
-      referenceId:   w._id.toString(),
-      status:        'completed',
+      referenceId: w._id.toString(), status: 'completed',
     });
   }
-
   return { withdrawal: w, user };
 };
 

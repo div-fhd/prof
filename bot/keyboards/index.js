@@ -1,24 +1,19 @@
 'use strict';
 const config = require('../../config');
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 const isValidHttpUrl = (str) => {
-  try {
-    const u = new URL(str);
-    return u.protocol === 'https:' || u.protocol === 'http:';
-  } catch { return false; }
+  try { const u = new URL(str); return u.protocol === 'https:' || u.protocol === 'http:'; }
+  catch { return false; }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Reply keyboards
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Reply keyboards ───────────────────────────────────────────────────────────
 const mainMenuKeyboard = () => ({
   reply_markup: {
     keyboard: [
-      [{ text: '💲 USDT' },          { text: '📊 الأرباح المتوقعة' }],
-      [{ text: '👤 حسابي' },         { text: '🔙 العودة للخلف' }],
+      [{ text: '💲 USDT' },           { text: '📊 الأرباح المتوقعة' }],
+      [{ text: '📈 التداول' },        { text: '👤 حسابي' }],
+      [{ text: '🎁 الإحالات' },       { text: '🆘 الدعم' }],
+      [{ text: '🔙 العودة للخلف' }],
     ],
     resize_keyboard: true,
     persistent: true,
@@ -33,15 +28,9 @@ const cancelKeyboard = () => ({
   },
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Inline keyboards
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Inline keyboards ──────────────────────────────────────────────────────────
 
-/**
- * Deposit screen — wallet buttons + "أرسلت الدفع" confirmation button.
- * Telegram url buttons MUST start with https:// or http://.
- * Wallet addresses or plain text → use callback_data instead.
- */
+/** شاشة الإيداع — أزرار المحافظ + زر تأكيد */
 const depositKeyboard = () => {
   const walletButtons = config.payment.wallets.map((w, i) => {
     if (isValidHttpUrl(w.link)) {
@@ -49,7 +38,6 @@ const depositKeyboard = () => {
     }
     return [{ text: w.name, callback_data: `wallet_info_${i}` }];
   });
-
   return {
     reply_markup: {
       inline_keyboard: [
@@ -90,11 +78,12 @@ const myAccountKeyboard = () => ({
         { text: '⏹️ إيقاف البوت', callback_data: 'bot_stop'  },
       ],
       [
-        { text: '💰 إيداع', callback_data: 'deposit'  },
-        { text: '💸 سحب',   callback_data: 'withdraw' },
+        { text: '💰 إيداع',       callback_data: 'deposit'   },
+        { text: '💸 سحب',         callback_data: 'withdraw'  },
       ],
-      [{ text: '📄 كشف الحساب', callback_data: 'account_statement' }],
-      [{ text: '🔙 رجوع',       callback_data: 'back_main'         }],
+      [{ text: '🎁 الإحالات',     callback_data: 'referrals'         }],
+      [{ text: '📄 كشف الحساب',   callback_data: 'account_statement' }],
+      [{ text: '🔙 رجوع',         callback_data: 'back_main'         }],
     ],
   },
 });
@@ -136,24 +125,37 @@ const statementKeyboard = () => ({
   },
 });
 
-const backOnlyKeyboard = () => ({
+const tradingKeyboard = () => ({
   reply_markup: {
     inline_keyboard: [
-      [{ text: '🔙 رجوع', callback_data: 'back_main' }],
+      [{ text: '▶️ تشغيل البوت',  callback_data: 'bot_start'  }],
+      [{ text: '⏹️ إيقاف البوت', callback_data: 'bot_stop'   }],
+      [{ text: '💰 إيداع',        callback_data: 'deposit'    }],
+      [{ text: '🔙 رجوع',         callback_data: 'back_main'  }],
     ],
   },
 });
 
+const referralKeyboard = () => ({
+  reply_markup: {
+    inline_keyboard: [
+      [{ text: '👥 أصدقائي المحالون', callback_data: 'referral_friends' }],
+      [{ text: '🔙 رجوع',            callback_data: 'back_main'         }],
+    ],
+  },
+});
+
+const backOnlyKeyboard = () => ({
+  reply_markup: {
+    inline_keyboard: [[{ text: '🔙 رجوع', callback_data: 'back_main' }]],
+  },
+});
+
 module.exports = {
-  mainMenuKeyboard,
-  cancelKeyboard,
-  depositKeyboard,
-  profitKeyboard,
-  accountLevelsKeyboard,
-  myAccountKeyboard,
-  afterBotControlKeyboard,
-  withdrawKeyboard,
-  afterWithdrawKeyboard,
-  statementKeyboard,
+  mainMenuKeyboard, cancelKeyboard,
+  depositKeyboard, profitKeyboard, accountLevelsKeyboard,
+  myAccountKeyboard, afterBotControlKeyboard,
+  withdrawKeyboard, afterWithdrawKeyboard,
+  statementKeyboard, tradingKeyboard, referralKeyboard,
   backOnlyKeyboard,
 };
