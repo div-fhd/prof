@@ -14,7 +14,7 @@ const handleMyAccount = async (bot, chatId) => {
 
     await bot.sendMessage(chatId, accountDashboardMsg(user), {
       parse_mode: 'Markdown',
-      ...myAccountKeyboard(),
+      ...myAccountKeyboard(user.botStatus),
     });
   } catch (err) {
     logger.error('handleMyAccount:', err);

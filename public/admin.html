@@ -129,6 +129,8 @@ tbody tr:hover{background:var(--surface2)}
       <div class="nav-item" onclick="showPage('deposits')" id="nav-deposits"><span class="nav-icon">💰</span> الإيداعات<span class="nav-badge" id="badge-deposits" style="display:none">0</span></div>
       <div class="nav-item" onclick="showPage('withdrawals')" id="nav-withdrawals"><span class="nav-icon">💸</span> السحوبات<span class="nav-badge" id="badge-withdrawals" style="display:none">0</span></div>
       <div class="nav-item" onclick="showPage('users')" id="nav-users"><span class="nav-icon">👥</span> المستخدمون</div>
+      <div class="nav-item" onclick="showPage('notify')" id="nav-notify"><span class="nav-icon">📣</span> الإشعارات</div>
+      <div class="nav-item" onclick="showPage('notify')" id="nav-notify"><span class="nav-icon">📣</span> الإشعارات</div>
     </div>
     <div class="main" id="main-content">
       <div class="loading"><div class="spinner"></div>جاري التحميل...</div>
@@ -222,6 +224,8 @@ function showPage(page){
   if(page==='deposits')loadDeposits();
   if(page==='withdrawals')loadWithdrawals();
   if(page==='users')loadUsers();
+  if(page==='notify')loadNotify();
+  if(page==='notify')loadNotify();
 }
 function refreshAll(){loadBadges();showPage(currentPage);}
 
@@ -505,6 +509,168 @@ async function confirmBalanceAction(){
     await loadUsers();
   }catch(err){showToast('❌ فشل: '+err.message,'error');}
 }
+
+// ── Notifications Page ──
+function loadNotify(){
+  document.getElementById('main-content').innerHTML=`
+    <div class="section-header"><div>
+      <div class="section-title">📣 الإشعارات</div>
+      <div class="section-subtitle">إرسال رسالة لمستخدم أو لجميع المستخدمين</div>
+    </div></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px">
+
+      <!-- إشعار فردي -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--accent2)">🎯 إشعار لمستخدم واحد</div>
+        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">أدخل Telegram ID والرسالة</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">Telegram ID</div>
+        <input id="n-single-id" class="modal-input" style="direction:ltr;margin-bottom:12px" placeholder="مثال: 123456789" type="number">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown: *bold* _italic_)</div>
+        <textarea id="n-single-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
+        <div style="margin-top:6px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-single-msg')">👁 معاينة</button>
+          <button class="btn btn-accent" onclick="sendSingleNotify()">📤 إرسال</button>
+        </div>
+      </div>
+
+      <!-- broadcast -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--warning)">📢 إشعار جماعي</div>
+        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">يُرسل لجميع أو للنشطين فقط</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">المستهدفون</div>
+        <select id="n-bc-target" class="modal-input" style="direction:rtl;margin-bottom:12px;cursor:pointer">
+          <option value="all">📋 جميع المستخدمين</option>
+          <option value="active">🟢 النشطون فقط (البوت شغّال)</option>
+        </select>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown: *bold* _italic_)</div>
+        <textarea id="n-bc-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
+        <div style="margin-top:6px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-bc-msg')">👁 معاينة</button>
+          <button class="btn btn-warning" onclick="sendBroadcast()">📢 إرسال للجميع</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- نتيجة الإرسال -->
+    <div id="notify-result" style="display:none;margin-top:20px;max-width:900px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px"></div>
+
+    <!-- Modal معاينة -->
+    <div class="modal-overlay" id="modal-preview" onclick="if(event.target===this)closeModal('modal-preview')">
+      <div class="modal" style="max-width:380px">
+        <h2 style="margin-bottom:12px">👁 معاينة الرسالة</h2>
+        <div id="preview-body" style="background:var(--surface2);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14px;line-height:1.6;direction:rtl;text-align:right;max-height:300px;overflow-y:auto"></div>
+        <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-preview')">إغلاق</button></div>
+      </div>
+    </div>`;
+}
+
+async function sendSingleNotify(){
+  const telegramId = document.getElementById('n-single-id').value.trim();
+  const message    = document.getElementById('n-single-msg').value.trim();
+  if(!telegramId||!message){showToast('❌ أدخل Telegram ID والرسالة','error');return;}
+  try{
+    showToast('⏳ جاري الإرسال...','success');
+    const res = await apiFetch('/admin/notify/user',{method:'POST',body:JSON.stringify({telegramId,message})});
+    showNotifyResult(`✅ تم الإرسال بنجاح للمستخدم ${telegramId}`,'success');
+    showToast('✔ تم الإرسال','success');
+  }catch(err){showNotifyResult(`❌ فشل الإرسال: ${err.message}`,'error');showToast('❌ فشل','error');}
+}
+
+async function sendBroadcast(){
+  const message    = document.getElementById('n-bc-msg').value.trim();
+  const onlyActive = document.getElementById('n-bc-target').value === 'active';
+  if(!message){showToast('❌ أدخل الرسالة','error');return;}
+  const target = onlyActive ? 'النشطين فقط' : 'جميع المستخدمين';
+  if(!confirm(`سيتم إرسال الرسالة لـ ${target}. هل أنت متأكد؟`))return;
+  try{
+    showToast('⏳ جاري الإرسال...','success');
+    const res = await apiFetch('/admin/notify/broadcast',{method:'POST',body:JSON.stringify({message,onlyActive})});
+    showNotifyResult(`✅ اكتمل الإرسال — أُرسل: ${res.sent} | فشل: ${res.failed} | الإجمالي: ${res.total}`,'success');
+    showToast(`✔ أُرسل لـ ${res.sent} مستخدم`,'success');
+  }catch(err){showNotifyResult(`❌ فشل: ${err.message}`,'error');showToast('❌ فشل','error');}
+}
+
+function showNotifyResult(msg,type){
+  const el=document.getElementById('notify-result');
+  if(!el)return;
+  el.style.display='block';
+  el.style.borderColor=type==='success'?'var(--success)':'var(--danger)';
+  el.style.color=type==='success'?'var(--success)':'var(--danger)';
+  el.style.fontWeight='600';
+  el.textContent=msg;
+}
+
+function previewMsg(inputId){
+  const text=document.getElementById(inputId)?.value||'';
+  document.getElementById('preview-body').textContent=text||'(الرسالة فارغة)';
+  document.getElementById('modal-preview').classList.add('open');
+}
+
+// ── Notifications ──
+function loadNotify(){
+  document.getElementById('main-content').innerHTML=`
+    <div class="section-header"><div><div class="section-title">📣 الإشعارات</div><div class="section-subtitle">إرسال رسالة لمستخدم أو لجميع المستخدمين</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--accent2)">🎯 إشعار لمستخدم واحد</div>
+        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">أدخل Telegram ID والرسالة</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">Telegram ID</div>
+        <input id="n-single-id" class="modal-input" style="direction:ltr;margin-bottom:12px" placeholder="123456789" type="number">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown)</div>
+        <textarea id="n-single-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-single-msg')">👁 معاينة</button>
+          <button class="btn btn-accent" onclick="sendSingleNotify()">📤 إرسال</button>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--warning)">📢 إشعار جماعي</div>
+        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">يُرسل لجميع أو للنشطين فقط</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">المستهدفون</div>
+        <select id="n-bc-target" class="modal-input" style="direction:rtl;margin-bottom:12px;cursor:pointer">
+          <option value="all">📋 جميع المستخدمين</option>
+          <option value="active">🟢 النشطون فقط</option>
+        </select>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown)</div>
+        <textarea id="n-bc-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-bc-msg')">👁 معاينة</button>
+          <button class="btn btn-warning" onclick="sendBroadcast()">📢 إرسال</button>
+        </div>
+      </div>
+    </div>
+    <div id="notify-result" style="display:none;margin-top:20px;max-width:900px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;font-weight:600"></div>
+    <div class="modal-overlay" id="modal-preview" onclick="if(event.target===this)closeModal('modal-preview')">
+      <div class="modal" style="max-width:400px">
+        <h2 style="margin-bottom:12px">👁 معاينة</h2>
+        <div id="preview-body" style="background:var(--surface2);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14px;line-height:1.6;direction:rtl;text-align:right;max-height:300px;overflow-y:auto"></div>
+        <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-preview')">إغلاق</button></div>
+      </div>
+    </div>`;
+}
+async function sendSingleNotify(){
+  const telegramId=document.getElementById('n-single-id').value.trim();
+  const message=document.getElementById('n-single-msg').value.trim();
+  if(!telegramId||!message){showToast('❌ أدخل Telegram ID والرسالة','error');return;}
+  try{
+    showToast('⏳ جاري الإرسال...','success');
+    await apiFetch('/admin/notify/user',{method:'POST',body:JSON.stringify({telegramId,message})});
+    const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--success)';r.style.color='var(--success)';r.textContent=`✅ تم الإرسال للمستخدم ${telegramId}`;showToast('✔ تم','success');
+  }catch(err){const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--danger)';r.style.color='var(--danger)';r.textContent=`❌ فشل: ${err.message}`;showToast('❌ فشل','error');}
+}
+async function sendBroadcast(){
+  const message=document.getElementById('n-bc-msg').value.trim();
+  const onlyActive=document.getElementById('n-bc-target').value==='active';
+  if(!message){showToast('❌ أدخل الرسالة','error');return;}
+  if(!confirm(`سيتم إرسال الرسالة لـ ${onlyActive?'النشطين فقط':'جميع المستخدمين'}. متأكد؟`))return;
+  try{
+    showToast('⏳ جاري الإرسال...','success');
+    const res=await apiFetch('/admin/notify/broadcast',{method:'POST',body:JSON.stringify({message,onlyActive})});
+    const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--success)';r.style.color='var(--success)';r.textContent=`✅ أُرسل: ${res.sent} | فشل: ${res.failed} | الإجمالي: ${res.total}`;showToast(`✔ أُرسل لـ ${res.sent}`,'success');
+  }catch(err){const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--danger)';r.style.color='var(--danger)';r.textContent=`❌ فشل: ${err.message}`;showToast('❌ فشل','error');}
+}
+function previewMsg(id){const text=document.getElementById(id)?.value||'';document.getElementById('preview-body').textContent=text||'(فارغة)';document.getElementById('modal-preview').classList.add('open');}
 
 // ── Helpers ──
 function closeModal(id){document.getElementById(id).classList.remove('open');pendingAction=null;}

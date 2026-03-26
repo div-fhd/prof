@@ -13,16 +13,16 @@ const userSchema = new mongoose.Schema(
     balance:          { type: Number, default: () => config.bot.seedBalance || 0 },
     totalDeposits:    { type: Number, default: 0 },
     totalWithdrawals: { type: Number, default: 0 },
-    totalProfit:      { type: Number, default: 0 },   // إجمالي الأرباح المضافة
+    totalProfit:      { type: Number, default: 0 },
 
     // Account
     accountLevel:     { type: Number, default: 1, min: 1, max: 5 },
     isVip:            { type: Boolean, default: false },
 
     // Referrals
-    referralCode:     { type: String, unique: true, sparse: true },  // كود الإحالة الخاص بالمستخدم
-    referredBy:       { type: String, default: null },               // telegramId من أحاله
-    invitedFriends:   { type: Number, default: 0 },                  // عدد من سجّل بكوده
+    referralCode:     { type: String, unique: true, sparse: true },
+    referredBy:       { type: String, default: null },
+    invitedFriends:   { type: Number, default: 0 },
 
     // Bot
     botStatus:        { type: String, enum: ['active', 'stopped'], default: 'stopped' },
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
     stateData:        { type: mongoose.Schema.Types.Mixed, default: null },
 
     lastActivity:     { type: Date, default: Date.now },
-    lastProfitAt:     { type: Date, default: null },   // آخر مرة أُضيف فيها ربح
+    lastProfitAt:     { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -49,9 +49,11 @@ userSchema.methods.levelName = function () {
   return labels[this.accountLevel] || 'مبتدئ ⚡️';
 };
 
+// القيمة الوسطى لنطاق المستوى — تُستخدم في عرض الإحصائيات فقط
 userSchema.methods.dailyProfitRate = function () {
-  const level = config.accountLevels.find(l => l.level === this.accountLevel);
-  return level ? level.dailyProfitRate : config.bot.profitRateDaily;
+  const range = config.accountLevelRanges.find(r => r.level === this.accountLevel)
+             || config.accountLevelRanges[0];
+  return parseFloat(((range.min + range.max) / 2).toFixed(4));
 };
 
 userSchema.methods.recalculateLevel = async function () {
@@ -67,7 +69,6 @@ userSchema.methods.recalculateLevel = async function () {
   return this;
 };
 
-// توليد كود إحالة عشوائي
 userSchema.methods.ensureReferralCode = async function () {
   if (!this.referralCode) {
     this.referralCode = `${this.telegramId}_${Math.random().toString(36).slice(2, 7).toUpperCase()}`;

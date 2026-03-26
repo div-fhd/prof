@@ -7,7 +7,9 @@ const TelegramBot          = require('node-telegram-bot-api');
 const connectDB            = require('./config/database');
 const config               = require('./config');
 const { registerHandlers } = require('./bot');
-const { applyDailyProfits } = require('./services/dailyProfitService');
+const { applyDailyProfits, setBotInstance: setProfitBot } = require('./services/dailyProfitService');
+const { setBotInstance: setNotifyBot }          = require('./services/notifyService');
+const adminRouter          = require('./routes/admin');
 const logger               = require('./utils/logger');
 
 // ── Express ───────────────────────────────────────────────────────────────────
@@ -15,24 +17,20 @@ const app = express();
 app.use(express.json());
 app.get('/panel', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.use('/health', require('./routes/health'));
-app.use('/admin',  require('./routes/admin'));
+app.use('/admin',  adminRouter);
 app.get('/', (_req, res) => res.json({ name: 'Telegram Investment Bot', version: '3.0.0', status: 'running' }));
 
 // ── Daily profit scheduler ────────────────────────────────────────────────────
-/**
- * يشتغل كل 24 ساعة ابتداءً من الساعة 00:00 بالتوقيت المحلي للسيرفر.
- * لتغيير الوقت: عدّل delayMs.
- */
 const scheduleDailyProfits = () => {
   const runAtMidnight = () => {
-    const now       = new Date();
-    const midnight  = new Date(now);
-    midnight.setHours(24, 0, 0, 0);                        // منتصف الليل القادم
-    const delayMs   = midnight.getTime() - now.getTime();  // وقت الانتظار
+    const now      = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    const delayMs  = midnight.getTime() - now.getTime();
 
     setTimeout(async () => {
       await applyDailyProfits();
-      scheduleDailyProfits(); // جدّول للتالي
+      scheduleDailyProfits();
     }, delayMs);
 
     logger.info(`Daily profit scheduled in ${Math.round(delayMs / 60000)} minutes`);
@@ -53,6 +51,11 @@ const start = async () => {
   const bot = new TelegramBot(config.telegram.token, {
     polling: { interval: 2000, autoStart: true, params: { timeout: 10 } },
   });
+
+  // حقن البوت في جميع الخدمات التي تحتاج إرسال رسائل
+  setProfitBot(bot);
+  setNotifyBot(bot);
+  adminRouter.setBotInstance(bot);
 
   registerHandlers(bot);
   scheduleDailyProfits();

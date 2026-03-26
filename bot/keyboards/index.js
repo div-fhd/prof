@@ -1,19 +1,14 @@
 'use strict';
 const config = require('../../config');
 
-const isValidHttpUrl = (str) => {
-  try { const u = new URL(str); return u.protocol === 'https:' || u.protocol === 'http:'; }
-  catch { return false; }
-};
-
+// ── Reply keyboards ───────────────────────────────────────────────────────────
 // ── Reply keyboards ───────────────────────────────────────────────────────────
 const mainMenuKeyboard = () => ({
   reply_markup: {
     keyboard: [
-      [{ text: '💲 USDT' },           { text: '📊 الأرباح المتوقعة' }],
       [{ text: '📈 التداول' },        { text: '👤 حسابي' }],
-      [{ text: '🎁 الإحالات' },       { text: '🆘 الدعم' }],
-      [{ text: '🔙 العودة للخلف' }],
+      [{ text: '🎁 الإحالات' },  { text: '📊 الأرباح المتوقعة' }     ],
+      [{ text: '🆘 الدعم' },{ text: '🔙 العودة للخلف' }],
     ],
     resize_keyboard: true,
     persistent: true,
@@ -30,11 +25,11 @@ const cancelKeyboard = () => ({
 
 // ── Inline keyboards ──────────────────────────────────────────────────────────
 
-/** شاشة الإيداع — أزرار المحافظ + زر تأكيد */
+// إصلاح: دائماً callback_data ليعرض عنوان المحفظة عند الضغط
 const depositKeyboard = () => {
-  const walletButtons = config.payment.wallets.map((w, i) => {
-    return [{ text: w.name, callback_data: `wallet_info_${i}` }];
-  });
+  const walletButtons = config.payment.wallets.map((w, i) => [
+    { text: w.name, callback_data: `wallet_info_${i}` },
+  ]);
   return {
     reply_markup: {
       inline_keyboard: [
@@ -67,20 +62,19 @@ const accountLevelsKeyboard = () => ({
   },
 });
 
-const myAccountKeyboard = () => ({
+const myAccountKeyboard = (botStatus = 'stopped') => ({
   reply_markup: {
     inline_keyboard: [
       [
-        { text: '▶️ تشغيل البوت',  callback_data: 'bot_start' },
-        { text: '⏹️ إيقاف البوت', callback_data: 'bot_stop'  },
+        botStatus === 'active'
+          ? { text: '⏹️ إيقاف البوت', callback_data: 'bot_stop'  }
+          : { text: '▶️ تشغيل البوت', callback_data: 'bot_start' },
+        { text: '💰 إيداع', callback_data: 'deposit'  },
+        { text: '💸 سحب',   callback_data: 'withdraw' },
       ],
-      [
-        { text: '💰 إيداع',       callback_data: 'deposit'   },
-        { text: '💸 سحب',         callback_data: 'withdraw'  },
-      ],
-      [{ text: '🎁 الإحالات',     callback_data: 'referrals'         }],
-      [{ text: '📄 كشف الحساب',   callback_data: 'account_statement' }],
-      [{ text: '🔙 رجوع',         callback_data: 'back_main'         }],
+      [{ text: '🎁 الإحالات',   callback_data: 'referrals'         }],
+      [{ text: '📄 كشف الحساب', callback_data: 'account_statement' }],
+      [{ text: '🔙 رجوع',       callback_data: 'back_main'         }],
     ],
   },
 });
@@ -122,13 +116,16 @@ const statementKeyboard = () => ({
   },
 });
 
-const tradingKeyboard = () => ({
+const tradingKeyboard = (botStatus = 'stopped') => ({
   reply_markup: {
     inline_keyboard: [
-      [{ text: '▶️ تشغيل البوت',  callback_data: 'bot_start'  }],
-      [{ text: '⏹️ إيقاف البوت', callback_data: 'bot_stop'   }],
-      [{ text: '💰 إيداع',        callback_data: 'deposit'    }],
-      [{ text: '🔙 رجوع',         callback_data: 'back_main'  }],
+      [
+        botStatus === 'active'
+          ? { text: '⏹️ إيقاف البوت', callback_data: 'bot_stop'  }
+          : { text: '▶️ تشغيل البوت', callback_data: 'bot_start' },
+        { text: '💰 إيداع', callback_data: 'deposit' },
+      ],
+      [{ text: '🔙 رجوع', callback_data: 'back_main' }],
     ],
   },
 });

@@ -123,6 +123,11 @@ const recalculateLevel = async (user) => {
       balanceBefore: user.balance,
       balanceAfter:  user.balance,
     });
+
+    // إشعار ترقية للأعلى فقط
+    if (newLevel > old) {
+      try { const n = require('./notifyService'); await n.onLevelUpgrade(user.telegramId, old, newLevel, user); } catch(_) {}
+    }
   }
   return user;
 };

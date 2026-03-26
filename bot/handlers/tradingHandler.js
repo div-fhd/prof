@@ -44,7 +44,7 @@ const handleTrading = async (bot, chatId) => {
 
     await bot.sendMessage(chatId, msg, {
       parse_mode: 'Markdown',
-      ...tradingKeyboard(),
+      ...tradingKeyboard(user.botStatus),
     });
   } catch (err) {
     logger.error('handleTrading:', err);
