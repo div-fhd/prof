@@ -33,9 +33,6 @@ const cancelKeyboard = () => ({
 /** شاشة الإيداع — أزرار المحافظ + زر تأكيد */
 const depositKeyboard = () => {
   const walletButtons = config.payment.wallets.map((w, i) => {
-    if (isValidHttpUrl(w.link)) {
-      return [{ text: w.name, url: w.link }];
-    }
     return [{ text: w.name, callback_data: `wallet_info_${i}` }];
   });
   return {

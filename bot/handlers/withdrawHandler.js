@@ -17,7 +17,7 @@ const handleWithdraw = async (bot, chatId) => {
       `💸 *سحب الأموال* 💸\n\n` +
       `❗️ يتم قبول USDT عبر شبكة TRC20 فقط\n` +
       `⚠️ رسوم السحب: *5 بالمئة*\n` +
-      `⏳ المعالجة: *من 2 إلى 7 أيام عمل*\n` +
+      `⏳ المعالجة: *من 1 إلى 2 أيام عمل*\n` +
       `🔑 الحد الأدنى: *${config.bot.minWithdrawal} USDT*\n\n` +
       `➖➖➖➖➖➖➖➖\n` +
       `💰 *الرصيد الحالي:* ${fmt(user.balance)} USDT`;
@@ -156,7 +156,7 @@ const handleWithdrawAddressInput = async (bot, chatId, text, stateData) => {
       `📋 العنوان: \`${walletAddress}\`\n\n` +
       `➖➖➖➖➖➖➖➖\n` +
       `🆔 رقم الطلب: \`${withdrawal._id}\`\n\n` +
-      `_سيتم التحويل خلال 2-7 أيام عمل._`,
+      `_سيتم التحويل خلال 1-2 أيام عمل._`,
       { parse_mode: 'Markdown', ...afterWithdrawKeyboard() });
   } catch (err) {
     logger.error('handleWithdrawAddressInput:', err);
