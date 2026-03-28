@@ -11,11 +11,11 @@ const handleStart = async (bot, msg) => {
 
   try {
     const { user, isNew } = await findOrCreateUser(msg.from);
-
+    logger.info(`START payload: "${payload}" | user: ${msg.from.id}`);
     // سجّل الإحالة فقط إذا:
     // 1. في payload يبدأ بـ ref_
     // 2. المستخدم جديد أو ما عنده referredBy بعد
-    if (payload && payload.startsWith('ref_') && !user.referredBy) {
+    if (payload && (payload.startsWith('ref_') || payload.startsWith('ref')) && !user.referredBy) {
       await handleReferralStart(payload, user);
     }
 

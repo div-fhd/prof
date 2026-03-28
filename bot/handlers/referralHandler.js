@@ -16,13 +16,13 @@ const handleReferrals = async (bot, chatId) => {
 
     // بناء الرابط الصحيح من اسم البوت الفعلي
     const botInfo     = await bot.getMe();
-    const referralLink = `https://t.me/${botInfo.username}?start=ref_${user.referralCode}`;
+    const referralLink = `https://t.me/${botInfo.username}?start=ref${user.referralCode}`;
 
     const msg =
       `🎁 *برنامج الإحالات*\n` +
       `➖➖➖➖➖➖➖➖\n\n` +
       `👥 *الأصدقاء المحالون:* ${user.invitedFriends}\n` +
-      `🎯 *كودك الخاص:* \`${user.referralCode}\`\n\n` +
+      `🎯 *كودك الخاص:* ${user.referralCode}\n\n` +
       `🔗 *رابط الإحالة:*\n` +
       `${referralLink}\n\n` +
       `➖➖➖➖➖➖➖➖\n` +
@@ -85,15 +85,21 @@ const handleReferralFriends = async (bot, chatId) => {
 // يُستدعى من startHandler بعد إنشاء المستخدم الجديد
 const handleReferralStart = async (referralCode, newUser) => {
   try {
-    if (!referralCode) return;
+    if (!referralCode) { logger.warn('Referral: no code'); return; }
 
-    // استخراج الكود — يدعم ref_CODE و CODE مباشرة
-    const code     = referralCode.startsWith('ref_') ? referralCode.slice(4) : referralCode;
+    // استخراج الكود الخام بعد إزالة ref_
+    let code = referralCode;
+    if (code.startsWith('ref_')) code = code.slice(4);
+    else if (code.startsWith('ref'))  code = code.slice(3);    logger.info(`Referral attempt: newUser=${newUser.telegramId} code="${code}"`);
+
+    // البحث بالكود في DB
     const referrer = await User.findOne({ referralCode: code });
+    logger.info(`Referral: referrer found = ${referrer ? referrer.telegramId : 'NOT FOUND'}`);
 
-    if (!referrer || referrer.telegramId === String(newUser.telegramId)) return;
+    if (!referrer) { logger.warn(`Referral: code "${code}" not found in DB`); return; }
+    if (referrer.telegramId === String(newUser.telegramId)) { logger.warn('Referral: self-referral'); return; }
 
-    // تسجيل المُحيل على المستخدم الجديد مباشرةً في DB
+    // تسجيل atomic في DB
     const updated = await User.findOneAndUpdate(
       { telegramId: String(newUser.telegramId), referredBy: null },
       { $set: { referredBy: referrer.telegramId } },
@@ -101,22 +107,20 @@ const handleReferralStart = async (referralCode, newUser) => {
     );
 
     if (!updated) {
-      logger.info(`Referral skipped: ${newUser.telegramId} already has referrer`);
+      logger.warn(`Referral skipped: ${newUser.telegramId} already has referrer`);
       return;
     }
 
     // زيادة عداد المُحيل
-    await User.findOneAndUpdate(
-      { telegramId: referrer.telegramId },
-      {
-        $inc: { invitedFriends: 1 },
-        $set: referrer.invitedFriends + 1 >= 20 ? { isVip: true } : {},
-      }
-    );
+    const newCount = referrer.invitedFriends + 1;
+    const updateData = { $inc: { invitedFriends: 1 } };
+    if (newCount >= 20) updateData.$set = { isVip: true };
 
-    logger.info(`Referral OK: ${newUser.telegramId} ← ${referrer.telegramId} (code: ${code})`);
+    await User.findOneAndUpdate({ telegramId: referrer.telegramId }, updateData);
+
+    logger.info(`Referral OK ✅: ${newUser.telegramId} ← ${referrer.telegramId} (code: ${code})`);
   } catch (err) {
-    logger.error('handleReferralStart:', err);
+    logger.error('handleReferralStart ERROR:', err);
   }
 };
 

@@ -87,7 +87,7 @@ userSchema.methods.hoursUntilWithdraw = function () {
 
 userSchema.methods.ensureReferralCode = async function () {
   if (!this.referralCode) {
-    this.referralCode = `${this.telegramId}_${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    this.referralCode = String(this.telegramId);
     await this.save();
   }
   return this.referralCode;
