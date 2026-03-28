@@ -1,11 +1,16 @@
 'use strict';
-const { getUserById, setState, clearState }   = require('../../services/userService');
-const { createWithdrawalRequest }             = require('../../services/withdrawalService');
-const { withdrawKeyboard, cancelKeyboard, afterWithdrawKeyboard, backOnlyKeyboard } = require('../keyboards');
+const { getUserById, setState, clearState } = require('../../services/userService');
+const { createWithdrawalRequest }           = require('../../services/withdrawalService');
+const { withdrawKeyboard, cancelKeyboard, backOnlyKeyboard } = require('../keyboards');
 const config = require('../../config');
 const logger = require('../../utils/logger');
 
-const fmt = (n) => Number(n || 0).toFixed(2);
+const fmt  = (n) => Number(n || 0).toFixed(2);
+const fmtH = (h) => {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  return mm > 0 ? `${hh} ساعة و${mm} دقيقة` : `${hh} ساعة`;
+};
 
 // ── شاشة السحب ───────────────────────────────────────────────────────────────
 const handleWithdraw = async (bot, chatId) => {
@@ -15,12 +20,13 @@ const handleWithdraw = async (bot, chatId) => {
 
     await bot.sendMessage(chatId,
       `💸 *سحب الأموال* 💸\n\n` +
-      `❗️ يتم قبول USDT عبر شبكة TRC20 فقط\n` +
       `⚠️ رسوم السحب: *5 بالمئة*\n` +
-      `⏳ المعالجة: *من1 الى 2أيام عمل*\n` +
-      `🔑 الحد الأدنى: *${config.bot.minWithdrawal} USDT*\n\n` +
+      `⏳ المعالجة: *من 2 إلى 7 أيام عمل*\n` +
+      `🔑 الحد الأدنى: *${config.bot.minWithdrawal} USDT*\n` +
+      `🛑 *شرط السحب:* يجب إيقاف البوت من 24 إلى 48 ساعة قبل السحب\n\n` +
       `➖➖➖➖➖➖➖➖\n` +
-      `💰 *الرصيد الحالي:* ${fmt(user.balance)} USDT`,
+      `💰 *الرصيد الحالي:* ${fmt(user.balance)} USDT\n` +
+      `🤖 *حالة البوت:* ${user.botStatus === 'active' ? '🟢 نشط' : '🔴 متوقف'}`,
       { parse_mode: 'Markdown', ...withdrawKeyboard() });
   } catch (err) {
     logger.error('handleWithdraw:', err);
@@ -28,20 +34,52 @@ const handleWithdraw = async (bot, chatId) => {
   }
 };
 
-// ── Step 1: اطلب المبلغ ──────────────────────────────────────────────────────
+// ── Step 1: التحقق من الشروط → اطلب المبلغ ──────────────────────────────────
 const handleWithdrawRequest = async (bot, chatId) => {
   try {
     const user = await getUserById(chatId);
     if (!user) { await bot.sendMessage(chatId, '⚠️ لم يتم العثور على حسابك.'); return; }
 
+    // شرط 1: الرصيد كافٍ
     if (user.balance < config.bot.minWithdrawal) {
       await bot.sendMessage(chatId,
-        `⚠️ *رصيدك غير كافٍ للسحب.*\n\n` +
+        `⚠️ *رصيدك غير كافٍ للسحب*\n\n` +
         `الحد الأدنى: *${config.bot.minWithdrawal} USDT*\n` +
         `رصيدك الحالي: *${fmt(user.balance)} USDT*`,
         { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [
-          [{ text: '💰 إيداع', callback_data: 'deposit' }],
+          [{ text: '💰 إيداع', callback_data: 'deposit'   }],
           [{ text: '🔙 رجوع',  callback_data: 'back_main' }],
+        ]}});
+      return;
+    }
+
+    // شرط 2: البوت متوقف
+    if (user.botStatus === 'active') {
+      await bot.sendMessage(chatId,
+        `🛑 *يجب إيقاف البوت قبل السحب*\n\n` +
+        `لضمان سلامة صفقاتك المفتوحة، يجب إيقاف البوت\n` +
+        `وانتظار من *24 إلى 48 ساعة* قبل تقديم طلب السحب.\n\n` +
+        `_هذا يضمن إغلاق جميع الصفقات بأمان._`,
+        { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [
+          [{ text: '⏹️ إيقاف البوت الآن', callback_data: 'bot_stop'   }],
+          [{ text: '🔙 رجوع',              callback_data: 'back_main'  }],
+        ]}});
+      return;
+    }
+
+    // شرط 3: مرت 12 ساعة على الإيقاف
+    if (!user.canWithdraw()) {
+      const remaining = user.hoursUntilWithdraw();
+      await bot.sendMessage(chatId,
+        `⏳ *يرجى الانتظار قليلاً*\n\n` +
+        `يجب مرور *24 ساعة على الأقل* بعد إيقاف البوت لضمان\n` +
+        `إغلاق جميع الصفقات المفتوحة بشكل آمن.\n\n` +
+        `➖➖➖➖➖➖➖➖\n` +
+        `🕐 *الوقت المتبقي:* ${fmtH(remaining)}\n\n` +
+        `_ستتمكن من السحب بعد اكتمال هذه المدة._`,
+        { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [
+          [{ text: '👤 حسابي',  callback_data: 'my_account' }],
+          [{ text: '🔙 رجوع',   callback_data: 'back_main'  }],
         ]}});
       return;
     }
@@ -51,6 +89,9 @@ const handleWithdrawRequest = async (bot, chatId) => {
       `💸 *طلب سحب*\n\n` +
       `💰 رصيدك: *${fmt(user.balance)} USDT*\n` +
       `🔑 الحد الأدنى: *${config.bot.minWithdrawal} USDT*\n\n` +
+      `⚠️ _تنبيه: إذا أصبح رصيدك بعد السحب أقل من 10 USDT سيتوقف البوت تلقائياً._
+
+🛑 _تأكد من إيقاف البوت 24-48 ساعة قبل السحب لإغلاق الصفقات._\n\n` +
       `أدخل المبلغ الذي تريد سحبه:\n_مثال: 50_\n\nاضغط ❌ إلغاء للعودة.`,
       { parse_mode: 'Markdown', ...cancelKeyboard() });
   } catch (err) {
@@ -59,19 +100,16 @@ const handleWithdrawRequest = async (bot, chatId) => {
   }
 };
 
-// ── Step 2: استلام المبلغ → اطلب الشبكة ─────────────────────────────────────
+// ── Step 2: التحقق من المبلغ → اطلب الشبكة ──────────────────────────────────
 const handleWithdrawAmountInput = async (bot, chatId, text) => {
   try {
     const amount = parseFloat(text.replace(/[,،\s$]/g, ''));
-
     if (isNaN(amount) || amount <= 0) {
       await bot.sendMessage(chatId, `⚠️ أدخل مبلغًا صحيحًا.`, { parse_mode: 'Markdown', ...cancelKeyboard() });
       return;
     }
     if (amount < config.bot.minWithdrawal) {
-      await bot.sendMessage(chatId,
-        `⚠️ الحد الأدنى *${config.bot.minWithdrawal} USDT*.`,
-        { parse_mode: 'Markdown', ...cancelKeyboard() });
+      await bot.sendMessage(chatId, `⚠️ الحد الأدنى *${config.bot.minWithdrawal} USDT*.`, { parse_mode: 'Markdown', ...cancelKeyboard() });
       return;
     }
     const user = await getUserById(chatId);
@@ -83,9 +121,15 @@ const handleWithdrawAmountInput = async (bot, chatId, text) => {
       return;
     }
 
+    // تحذير إذا الرصيد المتبقي سيكون أقل من 10
+    const remaining = user.balance - amount;
+    const warning = remaining < 10 && remaining > 0
+      ? `\n\n⚠️ _تنبيه: رصيدك بعد السحب سيكون ${fmt(remaining)} USDT وسيتوقف البوت تلقائياً._`
+      : '';
+
     await setState(chatId, 'awaiting_withdrawal_network', { amount });
     await bot.sendMessage(chatId,
-      `💸 *المبلغ:* ${amount} USDT\n\nاختر شبكة السحب:`,
+      `💸 *المبلغ:* ${amount} USDT${warning}\n\nاختر شبكة السحب:`,
       { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [
         [{ text: '🔵 TRC20 (TRON)', callback_data: 'wnet_TRC20' }],
         [{ text: '🟡 BEP20 (BSC)',  callback_data: 'wnet_BEP20' }],
@@ -98,15 +142,14 @@ const handleWithdrawAmountInput = async (bot, chatId, text) => {
   }
 };
 
-// ── Step 3: اختيار الشبكة → اطلب عنوان المحفظة ──────────────────────────────
+// ── Step 3: اختيار الشبكة ────────────────────────────────────────────────────
 const handleWithdrawNetworkSelected = async (bot, chatId, network, stateData) => {
   try {
     await setState(chatId, 'awaiting_withdrawal_address', { ...stateData, network });
     await bot.sendMessage(chatId,
       `🌐 *الشبكة:* ${network}\n\n` +
       `أدخل عنوان محفظتك للسحب:\n\n` +
-      `⚠️ تأكد أن العنوان صحيح ويدعم شبكة *${network}*\n\n` +
-      `اضغط ❌ إلغاء للعودة.`,
+      `⚠️ تأكد أن العنوان صحيح ويدعم شبكة *${network}*\n\nاضغط ❌ إلغاء للعودة.`,
       { parse_mode: 'Markdown', ...cancelKeyboard() });
   } catch (err) {
     logger.error('handleWithdrawNetworkSelected:', err);
@@ -114,38 +157,32 @@ const handleWithdrawNetworkSelected = async (bot, chatId, network, stateData) =>
   }
 };
 
-// ── Step 4: استلام العنوان → حفظ (بدون رسالة مكررة — notifyService يرسل) ────
+// ── Step 4: استلام العنوان → حفظ ─────────────────────────────────────────────
 const handleWithdrawAddressInput = async (bot, chatId, text, stateData) => {
   try {
     const walletAddress = text.trim();
     if (!walletAddress || walletAddress.length < 10) {
-      await bot.sendMessage(chatId,
-        `⚠️ عنوان غير صالح. أدخل عنوان محفظة صحيحًا.`,
-        { parse_mode: 'Markdown', ...cancelKeyboard() });
+      await bot.sendMessage(chatId, `⚠️ عنوان غير صالح.`, { parse_mode: 'Markdown', ...cancelKeyboard() });
       return;
     }
-
     await clearState(chatId);
     const { amount, network } = stateData;
-
-    // createWithdrawalRequest يستدعي notifyService.onWithdrawalCreated داخلياً
     await createWithdrawalRequest({ telegramId: chatId, amount, network, walletAddress });
-
   } catch (err) {
     logger.error('handleWithdrawAddressInput:', err);
     await bot.sendMessage(chatId, '❌ حدث خطأ، يرجى المحاولة مرة أخرى.');
   }
 };
 
-// ── كيف يعمل ─────────────────────────────────────────────────────────────────
 const handleHowItWorks = async (bot, chatId) => {
   try {
     await bot.sendMessage(chatId,
       `ℹ️ *كيف يعمل السحب؟*\n\n` +
       `🔹 *الشبكات المدعومة:* TRC20 / BEP20 / ERC20\n` +
       `🔹 *الرسوم:* 5 بالمئة من كل سحب\n` +
-      `🔹 *المعالجة:*1 الى 2أيام عمل\n` +
-      `🔹 *الحد الأدنى:* ${config.bot.minWithdrawal} USDT\n\n` +
+      `🔹 *المعالجة:* 2 إلى 7 أيام عمل\n` +
+      `🔹 *الحد الأدنى:* ${config.bot.minWithdrawal} USDT\n` +
+      `🔹 *شرط السحب:* إيقاف البوت 24-48 ساعة مسبقاً\n\n` +
       `📞 للاستفسار تواصل مع الدعم الفني.`,
       { parse_mode: 'Markdown', ...backOnlyKeyboard() });
   } catch (err) {

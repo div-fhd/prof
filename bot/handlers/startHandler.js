@@ -1,18 +1,20 @@
 'use strict';
-const { findOrCreateUser }        = require('../../services/userService');
-const { handleReferralStart }     = require('./referralHandler');
-const { mainMenuKeyboard }        = require('../keyboards');
-const { welcomeMsg }              = require('../messages');
-const logger                      = require('../../utils/logger');
+const { findOrCreateUser }    = require('../../services/userService');
+const { handleReferralStart } = require('./referralHandler');
+const { mainMenuKeyboard }    = require('../keyboards');
+const { welcomeMsg }          = require('../messages');
+const logger                  = require('../../utils/logger');
 
 const handleStart = async (bot, msg) => {
-  const chatId   = msg.chat.id;
-  const payload  = msg.text && msg.text.split(' ')[1]; // مثال: /start ref_ABC123
+  const chatId  = msg.chat.id;
+  const payload = msg.text && msg.text.split(' ')[1]; // /start ref_CODE
 
   try {
-    const user = await findOrCreateUser(msg.from);
+    const { user, isNew } = await findOrCreateUser(msg.from);
 
-    // معالجة رابط الإحالة إن وجد
+    // سجّل الإحالة فقط إذا:
+    // 1. في payload يبدأ بـ ref_
+    // 2. المستخدم جديد أو ما عنده referredBy بعد
     if (payload && payload.startsWith('ref_') && !user.referredBy) {
       await handleReferralStart(payload, user);
     }

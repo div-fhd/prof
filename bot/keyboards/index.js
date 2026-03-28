@@ -2,13 +2,12 @@
 const config = require('../../config');
 
 // ── Reply keyboards ───────────────────────────────────────────────────────────
-// ── Reply keyboards ───────────────────────────────────────────────────────────
 const mainMenuKeyboard = () => ({
   reply_markup: {
     keyboard: [
-      [{ text: '📈 التداول' },        { text: '👤 حسابي' }],
-      [{ text: '🎁 الإحالات' },  { text: '📊 الأرباح المتوقعة' }     ],
-      [{ text: '🆘 الدعم' },{ text: '🔙 العودة للخلف' }],
+      [{ text: '📊 الأرباح المتوقعة' }, { text: '👤 حسابي' }],
+      [{ text: '📈 التداول' },           { text: '🎁 الإحالات' }],
+      [{ text: '🆘 الدعم' },             { text: '🔙 العودة للخلف' }],
     ],
     resize_keyboard: true,
     persistent: true,
@@ -79,11 +78,16 @@ const myAccountKeyboard = (botStatus = 'stopped') => ({
   },
 });
 
-const afterBotControlKeyboard = () => ({
+const afterBotControlKeyboard = (botStatus = 'stopped') => ({
   reply_markup: {
     inline_keyboard: [
-      [{ text: '👤 عرض حسابي', callback_data: 'my_account' }],
-      [{ text: '🔙 رجوع',      callback_data: 'back_main'  }],
+      [
+        botStatus === 'active'
+          ? { text: '⏹️ إيقاف البوت', callback_data: 'bot_stop'  }
+          : { text: '▶️ تشغيل البوت', callback_data: 'bot_start' },
+        { text: '👤 حسابي', callback_data: 'my_account' },
+      ],
+      [{ text: '🔙 رجوع', callback_data: 'back_main' }],
     ],
   },
 });

@@ -46,7 +46,7 @@ const registerHandlers = (bot) => {
     const text   = msg.text.trim();
 
     let user;
-    try { user = await findOrCreateUser(msg.from); }
+    try { ({ user } = await findOrCreateUser(msg.from)); }
     catch (err) { logger.error('findOrCreateUser:', err); return; }
 
     const state     = user.state;
@@ -101,7 +101,7 @@ const registerHandlers = (bot) => {
 
     // جلب المستخدم لأي callback يحتاج stateData
     let user;
-    try { user = await findOrCreateUser(query.from); } catch (_) {}
+    try { ({ user } = await findOrCreateUser(query.from)); } catch (_) {}
     const stateData = user?.stateData || {};
 
     try {

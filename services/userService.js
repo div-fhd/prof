@@ -15,12 +15,15 @@ const findOrCreateUser = async (telegramUser) => {
 
   let user = await User.findOne({ telegramId: id });
 
+  let isNew = false;
+
   if (!user) {
+    isNew = true;
     const { seedBalance } = require('../config').bot;
 
     user = await User.create({
       telegramId:  id,
-      username:    telegramUser.username  || null,
+      username:    telegramUser.username   || null,
       firstName:   telegramUser.first_name || '',
       lastName:    telegramUser.last_name  || '',
       balance:     seedBalance || 0,
@@ -44,14 +47,14 @@ const findOrCreateUser = async (telegramUser) => {
     logger.info(`New user: ${id} (${telegramUser.username})`);
   } else {
     // Keep profile fresh
-    user.username    = telegramUser.username    || user.username;
-    user.firstName   = telegramUser.first_name  || user.firstName;
-    user.lastName    = telegramUser.last_name   || user.lastName;
+    user.username     = telegramUser.username    || user.username;
+    user.firstName    = telegramUser.first_name  || user.firstName;
+    user.lastName     = telegramUser.last_name   || user.lastName;
     user.lastActivity = new Date();
     await user.save();
   }
 
-  return user;
+  return { user, isNew };
 };
 
 const getUserById = async (telegramId) =>
@@ -79,6 +82,12 @@ const setBotStatus = async (telegramId, status) => {
 
   user.botStatus = status;
   await user.save();
+
+  // حفظ وقت الإيقاف في User لشرط 12 ساعة
+  if (status === 'stopped') {
+    user.botStoppedAt = new Date();
+    await user.save();
+  }
 
   const botUpdate =
     status === 'active'

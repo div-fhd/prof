@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة تحكم الأدمن</title>
+<title>لوحة تحكم — Professor Investment</title>
 <style>
-:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#222535;--border:#2e3148;--accent:#6c63ff;--accent2:#4ecca3;--danger:#ff4757;--warning:#ffa502;--success:#2ed573;--text:#e8eaf6;--muted:#8892b0;--radius:10px}
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#222535;--border:#2e3148;--accent:#6c63ff;--accent2:#4ecca3;--danger:#ff4757;--warning:#ffa502;--success:#2ed573;--text:#e8eaf6;--muted:#8892b0;--radius:10px;--sidebar-w:220px;--topbar-h:56px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
 .login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 40px;width:100%;max-width:380px;text-align:center}
 .login-box .logo{font-size:48px;margin-bottom:12px}
@@ -17,41 +17,45 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:v
 .login-box input:focus{outline:none;border-color:var(--accent)}
 .login-error{color:var(--danger);font-size:13px;margin-top:-6px;margin-bottom:10px;display:none}
 #app{display:none;flex-direction:column;min-height:100vh}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.topbar-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
-.topbar-brand span{font-size:22px}
-.topbar-right{display:flex;align-items:center;gap:12px}
-.badge-live{background:var(--success);color:#000;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
-.layout{display:flex;flex:1}
-.sidebar{width:220px;background:var(--surface);border-left:1px solid var(--border);padding:20px 0;flex-shrink:0}
-.nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;color:var(--muted);transition:all .15s;border-right:3px solid transparent;font-size:13.5px}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);height:var(--topbar-h);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;gap:12px}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;white-space:nowrap}
+.topbar-brand span{font-size:20px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge-live{background:var(--success);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1}
+.layout{display:flex;flex:1;position:relative}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-left:1px solid var(--border);padding:16px 0;flex-shrink:0;position:sticky;top:var(--topbar-h);height:calc(100vh - var(--topbar-h));overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;color:var(--muted);transition:all .15s;border-right:3px solid transparent;font-size:13.5px;white-space:nowrap}
 .nav-item:hover{color:var(--text);background:var(--surface2)}
 .nav-item.active{color:var(--accent);border-right-color:var(--accent);background:var(--surface2)}
-.nav-icon{font-size:16px;width:20px;text-align:center}
-.nav-badge{margin-right:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center}
-.main{flex:1;padding:28px;overflow-y:auto}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-right:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center}
+.nav-section{padding:10px 18px 4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150}
+.sidebar-overlay.open{display:block}
+.main{flex:1;padding:24px;overflow-y:auto;min-width:0}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
 .section-title{font-size:20px;font-weight:700}
 .section-subtitle{color:var(--muted);font-size:13px;margin-top:2px}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-bottom:28px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
-.stat-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.stat-value{font-size:26px;font-weight:700}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.stat-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.stat-value{font-size:24px;font-weight:700}
 .stat-value.green{color:var(--success)}.stat-value.yellow{color:var(--warning)}.stat-value.purple{color:var(--accent)}.stat-value.cyan{color:var(--accent2)}
-.stat-sub{color:var(--muted);font-size:12px;margin-top:4px}
-.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
-.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:all .15s;font-family:inherit}
+.stat-sub{color:var(--muted);font-size:11px;margin-top:3px}
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:all .15s;font-family:inherit}
 .filter-btn:hover{border-color:var(--accent);color:var(--text)}
 .filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.filter-search{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;width:220px;direction:rtl;font-family:inherit}
+.filter-search{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;direction:rtl;font-family:inherit;flex:1;min-width:140px}
 .filter-search:focus{outline:none;border-color:var(--accent)}
 .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:700px}
-thead th{background:var(--surface2);padding:12px 16px;text-align:right;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap}
-tbody td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+table{width:100%;border-collapse:collapse;min-width:500px}
+thead th{background:var(--surface2);padding:10px 14px;text-align:right;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--surface2)}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
 .badge-pending{background:rgba(255,165,2,.15);color:var(--warning)}
 .badge-completed{background:rgba(46,213,115,.15);color:var(--success)}
 .badge-rejected{background:rgba(255,71,87,.15);color:var(--danger)}
@@ -63,150 +67,156 @@ tbody tr:hover{background:var(--surface2)}
 .btn-success{background:var(--success);color:#000}.btn-danger{background:var(--danger);color:#fff}
 .btn-accent{background:var(--accent);color:#fff}.btn-warning{background:var(--warning);color:#000}
 .btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
-.btn-sm{padding:4px 10px;font-size:11px}.btn-group{display:flex;gap:6px}
-.empty{text-align:center;padding:48px 20px;color:var(--muted)}
-.empty-icon{font-size:40px;margin-bottom:12px}
-.alert-banner{background:rgba(255,165,2,.1);border:1px solid rgba(255,165,2,.3);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:13px}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.btn-sm{padding:4px 10px;font-size:11px}.btn-group{display:flex;gap:6px;flex-wrap:wrap}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.alert-banner{background:rgba(255,165,2,.1);border:1px solid rgba(255,165,2,.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;font-size:13px;flex-wrap:wrap}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-.modal h2{font-size:18px;margin-bottom:6px}
-.modal p{color:var(--muted);font-size:13px;margin-bottom:20px}
-.modal-info{background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:16px}
-.modal-info-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;gap:12px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:17px;margin-bottom:5px}
+.modal p{color:var(--muted);font-size:13px;margin-bottom:18px}
+.modal-info{background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px}
+.modal-info-row{display:flex;justify-content:space-between;margin-bottom:7px;font-size:13px;gap:10px}
 .modal-info-row:last-child{margin-bottom:0}
 .modal-info-label{color:var(--muted);flex-shrink:0}
 .modal-info-value{text-align:left;word-break:break-all}
-.modal-input{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:10px;direction:ltr;text-align:right;font-family:inherit}
+.modal-input{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:10px;direction:ltr;text-align:right;font-family:inherit}
 .modal-input:focus{outline:none;border-color:var(--accent)}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-.topup-card{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:24px;margin-bottom:24px}
-.topup-card h3{font-size:15px;margin-bottom:4px;color:var(--accent)}
-.topup-card p{color:var(--muted);font-size:12px;margin-bottom:16px}
-.topup-row{display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.topup-card{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.topup-card h3{font-size:14px;margin-bottom:3px;color:var(--accent)}
+.topup-card p{color:var(--muted);font-size:12px;margin-bottom:14px}
+.topup-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
 .topup-label{font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right}
-.wallet-address{font-family:'Courier New',monospace;font-size:11px;color:var(--accent2);background:var(--bg);padding:4px 8px;border-radius:4px;border:1px solid var(--border);display:inline-block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;vertical-align:middle}
-.wallet-address:hover{border-color:var(--accent2)}
-.network-tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(78,204,163,.15);color:var(--accent2)}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 24px;font-size:13px;z-index:999;transition:transform .3s ease;pointer-events:none;white-space:nowrap}
+.wallet-address{font-family:'Courier New',monospace;font-size:11px;color:var(--accent2);background:var(--bg);padding:3px 6px;border-radius:4px;border:1px solid var(--border);display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;vertical-align:middle}
+.network-tag{display:inline-block;padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(78,204,163,.15);color:var(--accent2)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;z-index:999;transition:transform .3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.success{border-color:var(--success);color:var(--success)}
 #toast.error{border-color:var(--danger);color:var(--danger)}
 .loading{text-align:center;padding:60px;color:var(--muted);font-size:13px}
-.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .mono{font-family:'Courier New',monospace;font-size:12px;color:var(--accent2)}
-.user-avatar{width:36px;height:36px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
-.user-info{display:flex;align-items:center;gap:10px}
-@media(max-width:700px){.sidebar{display:none}.stats-grid{grid-template-columns:1fr 1fr}.main{padding:16px}.topup-row{grid-template-columns:1fr 1fr}}
+.user-avatar{width:34px;height:34px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.user-info{display:flex;align-items:center;gap:8px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+@media(max-width:768px){
+  .sidebar{position:fixed;top:var(--topbar-h);right:0;height:calc(100vh - var(--topbar-h));z-index:160;transform:translateX(110%);transition:transform .25s ease;border-left:1px solid var(--border);width:240px}
+  .sidebar.mobile-open{transform:translateX(0)}
+  .hamburger{display:block}
+  .main{padding:14px}
+  .two-col{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:14px}
+  .stat-value{font-size:20px}
+  .topup-row{grid-template-columns:1fr 1fr}
+  .section-title{font-size:17px}
+  table{min-width:420px}
+  .badge-live{display:none}
+}
+@media(max-width:480px){
+  .topup-row{grid-template-columns:1fr}
+  .topup-row button{width:100%}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
 
 <div id="login-screen">
   <div class="login-box">
-    <div class="logo">🤖</div>
-    <h1>لوحة التحكم</h1>
-    <p>منصة التداول الذكية — Admin Panel</p>
-    <input type="password" id="api-key-input" placeholder="أدخل ADMIN_API_KEY" />
-    <div class="login-error" id="login-error">❌ مفتاح غير صحيح أو السيرفر غير متاح</div>
-    <button class="btn btn-accent" style="width:100%;padding:12px;font-size:14px" onclick="doLogin()">دخول</button>
+    <div class="logo">🏦</div>
+    <h1>Professor Investment</h1>
+    <p>لوحة تحكم الأدمن</p>
+    <input type="password" id="api-key-input" placeholder="أدخل ADMIN_API_KEY" autocomplete="current-password"/>
+    <div class="login-error" id="login-error">❌ مفتاح خاطئ، حاول مجدداً</div>
+    <button class="btn btn-accent" style="width:100%;padding:12px" onclick="doLogin()">دخول</button>
   </div>
 </div>
 
 <div id="app">
   <div class="topbar">
-    <div class="topbar-brand"><span>🤖</span> لوحة التحكم</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-brand"><span>🏦</span> Professor Investment</div>
+      <span class="badge-live">LIVE</span>
+    </div>
     <div class="topbar-right">
-      <span class="badge-live">● مباشر</span>
       <button class="btn btn-ghost btn-sm" onclick="refreshAll()">🔄 تحديث</button>
       <button class="btn btn-ghost btn-sm" onclick="logout()">خروج</button>
     </div>
   </div>
   <div class="layout">
-    <div class="sidebar">
-      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">📊</span> الرئيسية</div>
-      <div class="nav-item" onclick="showPage('deposits')" id="nav-deposits"><span class="nav-icon">💰</span> الإيداعات<span class="nav-badge" id="badge-deposits" style="display:none">0</span></div>
-      <div class="nav-item" onclick="showPage('withdrawals')" id="nav-withdrawals"><span class="nav-icon">💸</span> السحوبات<span class="nav-badge" id="badge-withdrawals" style="display:none">0</span></div>
-      <div class="nav-item" onclick="showPage('users')" id="nav-users"><span class="nav-icon">👥</span> المستخدمون</div>
-      <div class="nav-item" onclick="showPage('notify')" id="nav-notify"><span class="nav-icon">📣</span> الإشعارات</div>
-      <div class="nav-item" onclick="showPage('notify')" id="nav-notify"><span class="nav-icon">📣</span> الإشعارات</div>
+    <div class="sidebar" id="sidebar">
+      <div class="nav-section">الرئيسية</div>
+      <div class="nav-item active" onclick="nav('dashboard')" id="nav-dashboard"><span class="nav-icon">📊</span> الرئيسية</div>
+      <div class="nav-section">العمليات</div>
+      <div class="nav-item" onclick="nav('deposits')" id="nav-deposits"><span class="nav-icon">💰</span> الإيداعات<span class="nav-badge" id="badge-deposits" style="display:none">0</span></div>
+      <div class="nav-item" onclick="nav('withdrawals')" id="nav-withdrawals"><span class="nav-icon">💸</span> السحوبات<span class="nav-badge" id="badge-withdrawals" style="display:none">0</span></div>
+      <div class="nav-section">إدارة</div>
+      <div class="nav-item" onclick="nav('users')" id="nav-users"><span class="nav-icon">👥</span> المستخدمون</div>
+      <div class="nav-item" onclick="nav('notify')" id="nav-notify"><span class="nav-icon">📣</span> الإشعارات</div>
     </div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
     <div class="main" id="main-content">
       <div class="loading"><div class="spinner"></div>جاري التحميل...</div>
     </div>
   </div>
 </div>
 
-<!-- Deposit Modal -->
 <div class="modal-overlay" id="modal-deposit">
   <div class="modal">
     <h2 id="mdep-title"></h2><p id="mdep-subtitle"></p>
     <div class="modal-info" id="mdep-info"></div>
-    <textarea class="modal-input" id="mdep-reason" placeholder="سبب الرفض (اختياري)" rows="3" style="display:none;resize:none"></textarea>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-deposit')">إلغاء</button>
-      <button class="btn" id="mdep-confirm-btn" onclick="confirmDepositAction()">تأكيد</button>
-    </div>
+    <textarea class="modal-input" id="mdep-reason" rows="2" placeholder="سبب الرفض..." style="display:none;direction:rtl;text-align:right;resize:none"></textarea>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-deposit')">إلغاء</button><button class="btn" id="mdep-confirm-btn" onclick="confirmDepositAction()"></button></div>
   </div>
 </div>
 
-<!-- Withdrawal Modal -->
 <div class="modal-overlay" id="modal-withdrawal">
   <div class="modal">
     <h2 id="mwith-title"></h2><p id="mwith-subtitle"></p>
     <div class="modal-info" id="mwith-info"></div>
-    <textarea class="modal-input" id="mwith-reason" placeholder="سبب الرفض (اختياري)" rows="3" style="display:none;resize:none"></textarea>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-withdrawal')">إلغاء</button>
-      <button class="btn" id="mwith-confirm-btn" onclick="confirmWithdrawalAction()">تأكيد</button>
-    </div>
+    <textarea class="modal-input" id="mwith-reason" rows="2" placeholder="سبب الرفض..." style="display:none;direction:rtl;text-align:right;resize:none"></textarea>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-withdrawal')">إلغاء</button><button class="btn" id="mwith-confirm-btn" onclick="confirmWithdrawalAction()"></button></div>
   </div>
 </div>
 
-<!-- Balance Modal -->
 <div class="modal-overlay" id="modal-balance">
   <div class="modal">
-    <h2>تعديل الرصيد يدوياً</h2><p id="mbal-subtitle"></p>
+    <h2>💰 تعديل الرصيد</h2><p id="mbal-subtitle"></p>
     <div class="modal-info" id="mbal-info"></div>
-    <select class="modal-input" id="mbal-op" style="cursor:pointer">
-      <option value="add">➕ إضافة للرصيد الحالي</option>
-      <option value="set">🔄 تعيين رصيد جديد</option>
-    </select>
-    <input type="number" class="modal-input" id="mbal-amount" placeholder="المبلغ بـ USDT" min="0" step="0.01" />
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modal-balance')">إلغاء</button>
-      <button class="btn btn-accent" onclick="confirmBalanceAction()">✔ تطبيق</button>
-    </div>
+    <select class="modal-input" id="mbal-op"><option value="add">➕ إضافة للرصيد</option><option value="set">🔄 تعيين رصيد جديد</option></select>
+    <input type="number" class="modal-input" id="mbal-amount" placeholder="المبلغ بـ USDT" min="0" step="0.01"/>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-balance')">إلغاء</button><button class="btn btn-accent" onclick="confirmBalanceAction()">✔ تطبيق</button></div>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-let API_KEY='', currentPage='dashboard';
-let allDeposits=[], allWithdrawals=[], allUsers=[];
-let pendingAction=null, pendingBalanceUser=null;
-let depFilter='all', withFilter='all', userSearch='';
+let API_KEY='',currentPage='dashboard';
+let allDeposits=[],allWithdrawals=[],allUsers=[];
+let pendingAction=null,pendingBalanceUser=null;
+let depFilter='all',withFilter='all',userSearch='';
 
-// ── Auth ──
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('mobile-open');document.getElementById('sidebar-overlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('mobile-open');document.getElementById('sidebar-overlay').classList.remove('open');}
+
 function doLogin(){
-  const key=document.getElementById('api-key-input').value.trim();
-  if(!key)return;
-  API_KEY=key;
+  const key=document.getElementById('api-key-input').value.trim();if(!key)return;API_KEY=key;
   apiFetch('/admin/users?limit=1').then(()=>{
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='flex';
-    document.getElementById('login-error').style.display='none';
-    sessionStorage.setItem('admin_key',key);
-    showPage('dashboard');
+    document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='flex';
+    document.getElementById('login-error').style.display='none';sessionStorage.setItem('admin_key',key);nav('dashboard');
   }).catch(()=>{API_KEY='';document.getElementById('login-error').style.display='block';});
 }
 function logout(){sessionStorage.removeItem('admin_key');API_KEY='';document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('api-key-input').value='';}
 document.getElementById('api-key-input').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 window.addEventListener('load',()=>{const s=sessionStorage.getItem('admin_key');if(s){document.getElementById('api-key-input').value=s;doLogin();}});
 
-// ── API ──
 async function apiFetch(path,options={}){
   const res=await fetch(path,{...options,headers:{'Content-Type':'application/json','x-admin-key':API_KEY,...(options.headers||{})}});
   if(res.status===401)throw new Error('unauthorized');
@@ -214,79 +224,66 @@ async function apiFetch(path,options={}){
   return res.json();
 }
 
-// ── Nav ──
-function showPage(page){
-  currentPage=page;
+function nav(page){
+  currentPage=page;closeSidebar();
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  document.getElementById('nav-'+page).classList.add('active');
+  const el=document.getElementById('nav-'+page);if(el)el.classList.add('active');
   document.getElementById('main-content').innerHTML='<div class="loading"><div class="spinner"></div>جاري التحميل...</div>';
   if(page==='dashboard')loadDashboard();
-  if(page==='deposits')loadDeposits();
-  if(page==='withdrawals')loadWithdrawals();
-  if(page==='users')loadUsers();
-  if(page==='notify')loadNotify();
-  if(page==='notify')loadNotify();
+  else if(page==='deposits')loadDeposits();
+  else if(page==='withdrawals')loadWithdrawals();
+  else if(page==='users')loadUsers();
+  else if(page==='notify')loadNotify();
 }
-function refreshAll(){loadBadges();showPage(currentPage);}
+function refreshAll(){loadBadges();nav(currentPage);}
 
-// ── Badges ──
 async function loadBadges(){
   try{
     const[d,w]=await Promise.all([apiFetch('/admin/deposits?status=pending'),apiFetch('/admin/withdrawals?status=pending')]);
     const db=document.getElementById('badge-deposits'),wb=document.getElementById('badge-withdrawals');
-    db.textContent=d.count;db.style.display=d.count>0?'inline-block':'none';
-    wb.textContent=w.count;wb.style.display=w.count>0?'inline-block':'none';
+    db.textContent=d.count;db.style.display=d.count>0?'':'none';
+    wb.textContent=w.count;wb.style.display=w.count>0?'':'none';
   }catch(_){}
 }
 
-// ── Dashboard ──
 async function loadDashboard(){
   try{
     const[ud,dd,wd]=await Promise.all([apiFetch('/admin/users'),apiFetch('/admin/deposits'),apiFetch('/admin/withdrawals')]);
     const users=ud.users,deps=dd.deposits,withs=wd.withdrawals;
-    const totalBalance=users.reduce((s,u)=>s+(u.balance||0),0);
+    const totalBal=users.reduce((s,u)=>s+(u.balance||0),0);
     const totalDep=deps.filter(d=>d.status==='completed').reduce((s,d)=>s+d.amount,0);
     const pendDeps=deps.filter(d=>d.status==='pending');
     const pendWiths=withs.filter(w=>w.status==='pending');
     const activeBots=users.filter(u=>u.botStatus==='active').length;
-
     document.getElementById('main-content').innerHTML=`
-      <div class="section-header"><div><div class="section-title">📊 الرئيسية</div><div class="section-subtitle">نظرة عامة على المنصة</div></div></div>
-      ${pendDeps.length>0?`<div class="alert-banner">⚠️ <strong>${pendDeps.length}</strong> طلب إيداع معلق<button class="btn btn-warning btn-sm" style="margin-right:auto" onclick="showPage('deposits')">عرض الآن</button></div>`:''}
-      ${pendWiths.length>0?`<div class="alert-banner">⚠️ <strong>${pendWiths.length}</strong> طلب سحب معلق<button class="btn btn-warning btn-sm" style="margin-right:auto" onclick="showPage('withdrawals')">عرض الآن</button></div>`:''}
+      <div class="section-header"><div><div class="section-title">📊 الرئيسية</div><div class="section-subtitle">نظرة عامة على المنصة</div></div><button class="btn btn-ghost btn-sm" onclick="refreshAll()">🔄 تحديث</button></div>
+      ${pendDeps.length>0?`<div class="alert-banner">⚠️ <strong>${pendDeps.length}</strong> طلب إيداع معلق <button class="btn btn-warning btn-sm" style="margin-right:auto" onclick="nav('deposits')">عرض</button></div>`:''}
+      ${pendWiths.length>0?`<div class="alert-banner">⚠️ <strong>${pendWiths.length}</strong> طلب سحب معلق <button class="btn btn-warning btn-sm" style="margin-right:auto" onclick="nav('withdrawals')">عرض</button></div>`:''}
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-label">المستخدمون</div><div class="stat-value purple">${users.length}</div><div class="stat-sub">مسجل</div></div>
-        <div class="stat-card"><div class="stat-label">الرصيد الإجمالي</div><div class="stat-value cyan">${fmt(totalBalance)}</div><div class="stat-sub">USDT</div></div>
+        <div class="stat-card"><div class="stat-label">الرصيد الإجمالي</div><div class="stat-value cyan">${fmt(totalBal)}</div><div class="stat-sub">USDT</div></div>
+        <div class="stat-card"><div class="stat-label">بوتات نشطة</div><div class="stat-value green">${activeBots}</div><div class="stat-sub">من ${users.length}</div></div>
         <div class="stat-card"><div class="stat-label">إيداعات معلقة</div><div class="stat-value yellow">${pendDeps.length}</div><div class="stat-sub">بانتظار الموافقة</div></div>
         <div class="stat-card"><div class="stat-label">سحوبات معلقة</div><div class="stat-value yellow">${pendWiths.length}</div><div class="stat-sub">بانتظار التنفيذ</div></div>
         <div class="stat-card"><div class="stat-label">إجمالي الإيداعات</div><div class="stat-value green">${fmt(totalDep)}</div><div class="stat-sub">USDT مؤكدة</div></div>
-        <div class="stat-card"><div class="stat-label">بوتات نشطة</div><div class="stat-value green">${activeBots}</div><div class="stat-sub">من أصل ${users.length}</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-        <div>
-          <div style="font-weight:700;margin-bottom:12px">💰 إيداعات معلقة</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>المستخدم</th><th>المبلغ</th><th>إجراء</th></tr></thead>
-            <tbody>${pendDeps.length===0?`<tr><td colspan="3" class="empty" style="padding:24px">لا يوجد</td></tr>`:pendDeps.slice(0,5).map(d=>`<tr><td class="mono">${d.telegramId}</td><td style="font-weight:600">${fmt(d.amount)} USDT</td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="openDepositModal('${d._id}','approve',${esc(d)})">✔</button><button class="btn btn-danger btn-sm" onclick="openDepositModal('${d._id}','reject',${esc(d)})">✘</button></div></td></tr>`).join('')}</tbody>
-          </table></div>
-        </div>
-        <div>
-          <div style="font-weight:700;margin-bottom:12px">💸 سحوبات معلقة</div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>المستخدم</th><th>المبلغ</th><th>الشبكة</th><th>إجراء</th></tr></thead>
-            <tbody>${pendWiths.length===0?`<tr><td colspan="4" class="empty" style="padding:24px">لا يوجد</td></tr>`:pendWiths.slice(0,5).map(w=>`<tr><td class="mono">${w.telegramId}</td><td style="font-weight:600">${fmt(w.amount)} USDT</td><td><span class="network-tag">${w.network||'TRC20'}</span></td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="openWithdrawalModal('${w._id}','complete',${esc(w)})">✔</button><button class="btn btn-danger btn-sm" onclick="openWithdrawalModal('${w._id}','reject',${esc(w)})">✘</button></div></td></tr>`).join('')}</tbody>
-          </table></div>
-        </div>
+      <div class="two-col">
+        <div><div style="font-weight:700;margin-bottom:10px;font-size:14px">💰 إيداعات معلقة</div>
+          <div class="table-wrap"><table><thead><tr><th>المستخدم</th><th>المبلغ</th><th>إجراء</th></tr></thead>
+          <tbody>${pendDeps.length===0?`<tr><td colspan="3"><div class="empty" style="padding:20px">لا يوجد</div></td></tr>`:
+            pendDeps.slice(0,5).map(d=>`<tr><td class="mono">${d.telegramId}</td><td style="font-weight:600">${fmt(d.amount)}</td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="openDepositModal('${d._id}','approve',${esc(d)})">✔</button><button class="btn btn-danger btn-sm" onclick="openDepositModal('${d._id}','reject',${esc(d)})">✘</button></div></td></tr>`).join('')}
+          </tbody></table></div></div>
+        <div><div style="font-weight:700;margin-bottom:10px;font-size:14px">💸 سحوبات معلقة</div>
+          <div class="table-wrap"><table><thead><tr><th>المستخدم</th><th>المبلغ</th><th>إجراء</th></tr></thead>
+          <tbody>${pendWiths.length===0?`<tr><td colspan="3"><div class="empty" style="padding:20px">لا يوجد</div></td></tr>`:
+            pendWiths.slice(0,5).map(w=>`<tr><td class="mono">${w.telegramId}</td><td style="font-weight:600">${fmt(w.amount)}</td><td><div class="btn-group"><button class="btn btn-success btn-sm" onclick="openWithdrawalModal('${w._id}','complete',${esc(w)})">✔</button><button class="btn btn-danger btn-sm" onclick="openWithdrawalModal('${w._id}','reject',${esc(w)})">✘</button></div></td></tr>`).join('')}
+          </tbody></table></div></div>
       </div>`;
     loadBadges();
   }catch(err){showError(err.message);}
 }
 
-// ── Deposits ──
-async function loadDeposits(){
-  try{const data=await apiFetch('/admin/deposits');allDeposits=data.deposits;renderDeposits();loadBadges();}
-  catch(err){showError(err.message);}
-}
+async function loadDeposits(){try{const data=await apiFetch('/admin/deposits');allDeposits=data.deposits;renderDeposits();loadBadges();}catch(err){showError(err.message);}}
 function renderDeposits(){
   let list=allDeposits;
   if(depFilter!=='all')list=list.filter(d=>d.status===depFilter);
@@ -295,14 +292,12 @@ function renderDeposits(){
   const pCount=allDeposits.filter(d=>d.status==='pending').length;
   document.getElementById('main-content').innerHTML=`
     <div class="section-header"><div><div class="section-title">💰 الإيداعات</div><div class="section-subtitle">${allDeposits.length} إجمالي — ${pCount} معلق</div></div></div>
-    <div class="topup-card">
-      <h3>⚡️ إضافة رصيد يدوي</h3>
-      <p>إضافة رصيد مباشرة بدون طلب إيداع</p>
+    <div class="topup-card"><h3>⚡️ إضافة رصيد يدوي</h3><p>إضافة رصيد مباشرة بدون طلب إيداع</p>
       <div class="topup-row">
         <div><div class="topup-label">Telegram ID</div><input class="modal-input" id="tu-id" placeholder="123456789" style="margin:0"/></div>
         <div><div class="topup-label">المبلغ (USDT)</div><input type="number" class="modal-input" id="tu-amount" placeholder="500" min="0" step="0.01" style="margin:0"/></div>
         <div><div class="topup-label">العملية</div><select class="modal-input" id="tu-op" style="margin:0;cursor:pointer"><option value="add">➕ إضافة</option><option value="set">🔄 تعيين</option></select></div>
-        <button class="btn btn-accent" style="align-self:end;padding:10px 18px" onclick="quickTopup()">تطبيق</button>
+        <button class="btn btn-accent" style="align-self:end;padding:10px 16px" onclick="quickTopup()">تطبيق</button>
       </div>
     </div>
     <div class="filter-bar">
@@ -310,44 +305,24 @@ function renderDeposits(){
       <button class="filter-btn ${depFilter==='pending'?'active':''}" onclick="depFilter='pending';renderDeposits()">معلق (${pCount})</button>
       <button class="filter-btn ${depFilter==='completed'?'active':''}" onclick="depFilter='completed';renderDeposits()">مكتمل</button>
       <button class="filter-btn ${depFilter==='rejected'?'active':''}" onclick="depFilter='rejected';renderDeposits()">مرفوض</button>
-      <input class="filter-search" id="dep-search" placeholder="بحث بـ ID..." oninput="renderDeposits()" value="${search}" style="margin-right:auto"/>
+      <input class="filter-search" id="dep-search" placeholder="بحث بـ ID..." oninput="renderDeposits()" value="${search}"/>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>رقم الطلب</th><th>المستخدم</th><th>المبلغ</th><th>الرسوم</th><th>الصافي</th><th>الشبكة</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+      <thead><tr><th>ID</th><th>المستخدم</th><th>المبلغ</th><th>الرسوم</th><th>الصافي</th><th>الشبكة</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
       <tbody>${list.length===0?`<tr><td colspan="9"><div class="empty"><div class="empty-icon">📭</div>لا توجد سجلات</div></td></tr>`:
-        list.map(d=>`<tr>
-          <td class="mono" style="font-size:11px">${d._id.slice(-8)}</td>
-          <td class="mono">${d.telegramId}</td>
-          <td style="font-weight:600">${fmt(d.amount)}</td>
-          <td style="color:var(--warning)">${fmt(d.fee)}</td>
-          <td style="color:var(--success)">${fmt(d.netAmount)}</td>
-          <td><span class="network-tag">${d.network||'TRC20'}</span></td>
-          <td>${statusBadge(d.status)}</td>
-          <td style="color:var(--muted);font-size:12px">${fmtDate(d.createdAt)}</td>
-          <td>${d.status==='pending'?`<div class="btn-group"><button class="btn btn-success btn-sm" onclick="openDepositModal('${d._id}','approve',${esc(d)})">✔ قبول</button><button class="btn btn-danger btn-sm" onclick="openDepositModal('${d._id}','reject',${esc(d)})">✘ رفض</button></div>`:'—'}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table></div>`;
+        list.map(d=>`<tr><td class="mono" style="font-size:11px">${d._id.slice(-8)}</td><td class="mono">${d.telegramId}</td><td style="font-weight:600">${fmt(d.amount)}</td><td style="color:var(--warning)">${fmt(d.fee)}</td><td style="color:var(--success)">${fmt(d.netAmount)}</td><td><span class="network-tag">${d.network||'TRC20'}</span></td><td>${statusBadge(d.status)}</td><td style="color:var(--muted);font-size:11px">${fmtDate(d.createdAt)}</td><td>${d.status==='pending'?`<div class="btn-group"><button class="btn btn-success btn-sm" onclick="openDepositModal('${d._id}','approve',${esc(d)})">✔</button><button class="btn btn-danger btn-sm" onclick="openDepositModal('${d._id}','reject',${esc(d)})">✘</button></div>`:'—'}</td></tr>`).join('')}
+      </tbody></table></div>`;
 }
 
 async function quickTopup(){
-  const telegramId=document.getElementById('tu-id').value.trim();
-  const amount=parseFloat(document.getElementById('tu-amount').value);
-  const operation=document.getElementById('tu-op').value;
+  const telegramId=document.getElementById('tu-id').value.trim(),amount=parseFloat(document.getElementById('tu-amount').value),operation=document.getElementById('tu-op').value;
   if(!telegramId){showToast('❌ أدخل Telegram ID','error');return;}
   if(isNaN(amount)||amount<0){showToast('❌ أدخل مبلغًا صحيحًا','error');return;}
-  try{
-    const res=await apiFetch(`/admin/users/${telegramId}/balance`,{method:'POST',body:JSON.stringify({amount,operation})});
-    showToast(`✔ تم — الرصيد: ${fmt(res.balance)} USDT (مستوى ${res.level})`,'success');
-    document.getElementById('tu-id').value='';document.getElementById('tu-amount').value='';
-  }catch(err){showToast('❌ فشل: '+err.message,'error');}
+  try{const res=await apiFetch(`/admin/users/${telegramId}/balance`,{method:'POST',body:JSON.stringify({amount,operation})});showToast(`✔ الرصيد: ${fmt(res.balance)} USDT`,'success');document.getElementById('tu-id').value='';document.getElementById('tu-amount').value='';}
+  catch(err){showToast('❌ فشل: '+err.message,'error');}
 }
 
-// ── Withdrawals ──
-async function loadWithdrawals(){
-  try{const data=await apiFetch('/admin/withdrawals');allWithdrawals=data.withdrawals;renderWithdrawals();loadBadges();}
-  catch(err){showError(err.message);}
-}
+async function loadWithdrawals(){try{const data=await apiFetch('/admin/withdrawals');allWithdrawals=data.withdrawals;renderWithdrawals();loadBadges();}catch(err){showError(err.message);}}
 function renderWithdrawals(){
   let list=allWithdrawals;
   if(withFilter!=='all')list=list.filter(w=>w.status===withFilter);
@@ -361,337 +336,139 @@ function renderWithdrawals(){
       <button class="filter-btn ${withFilter==='pending'?'active':''}" onclick="withFilter='pending';renderWithdrawals()">معلق (${pCount})</button>
       <button class="filter-btn ${withFilter==='completed'?'active':''}" onclick="withFilter='completed';renderWithdrawals()">منفذ</button>
       <button class="filter-btn ${withFilter==='rejected'?'active':''}" onclick="withFilter='rejected';renderWithdrawals()">مرفوض</button>
-      <input class="filter-search" id="with-search" placeholder="بحث بـ ID..." oninput="renderWithdrawals()" value="${search}" style="margin-right:auto"/>
+      <input class="filter-search" id="with-search" placeholder="بحث بـ ID..." oninput="renderWithdrawals()" value="${search}"/>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>رقم الطلب</th><th>المستخدم</th><th>المبلغ</th><th>الرسوم</th><th>الصافي</th><th>الشبكة</th><th>عنوان المحفظة</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
-      <tbody>${list.length===0?`<tr><td colspan="10"><div class="empty"><div class="empty-icon">📭</div>لا توجد سجلات</div></td></tr>`:
-        list.map(w=>`<tr>
-          <td class="mono" style="font-size:11px">${w._id.slice(-8)}</td>
-          <td class="mono">${w.telegramId}</td>
-          <td style="font-weight:600">${fmt(w.amount)}</td>
-          <td style="color:var(--warning)">${fmt(w.fee)}</td>
-          <td style="color:var(--success)">${fmt(w.netAmount)}</td>
-          <td><span class="network-tag">${w.network||'TRC20'}</span></td>
-          <td>${w.walletAddress?`<span class="wallet-address" onclick="copyText('${w.walletAddress}')" title="اضغط للنسخ">${w.walletAddress}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
-          <td>${statusBadge(w.status)}</td>
-          <td style="color:var(--muted);font-size:12px">${fmtDate(w.createdAt)}</td>
-          <td>${w.status==='pending'?`<div class="btn-group"><button class="btn btn-success btn-sm" onclick="openWithdrawalModal('${w._id}','complete',${esc(w)})">✔ تنفيذ</button><button class="btn btn-danger btn-sm" onclick="openWithdrawalModal('${w._id}','reject',${esc(w)})">✘ رفض</button></div>`:'—'}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table></div>`;
+      <thead><tr><th>ID</th><th>المستخدم</th><th>المبلغ</th><th>الصافي</th><th>الشبكة</th><th>العنوان</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+      <tbody>${list.length===0?`<tr><td colspan="9"><div class="empty"><div class="empty-icon">📭</div>لا توجد سجلات</div></td></tr>`:
+        list.map(w=>`<tr><td class="mono" style="font-size:11px">${w._id.slice(-8)}</td><td class="mono">${w.telegramId}</td><td style="font-weight:600">${fmt(w.amount)}</td><td style="color:var(--success)">${fmt(w.netAmount)}</td><td><span class="network-tag">${w.network||'TRC20'}</span></td><td>${w.walletAddress?`<span class="wallet-address" onclick="copyText('${w.walletAddress}')" title="${w.walletAddress}">${w.walletAddress}</span>`:'—'}</td><td>${statusBadge(w.status)}</td><td style="color:var(--muted);font-size:11px">${fmtDate(w.createdAt)}</td><td>${w.status==='pending'?`<div class="btn-group"><button class="btn btn-success btn-sm" onclick="openWithdrawalModal('${w._id}','complete',${esc(w)})">✔</button><button class="btn btn-danger btn-sm" onclick="openWithdrawalModal('${w._id}','reject',${esc(w)})">✘</button></div>`:'—'}</td></tr>`).join('')}
+      </tbody></table></div>`;
 }
 
-// ── Users ──
-async function loadUsers(){
-  try{const data=await apiFetch('/admin/users');allUsers=data.users;renderUsers();}
-  catch(err){showError(err.message);}
-}
+async function loadUsers(){try{const data=await apiFetch('/admin/users');allUsers=data.users;renderUsers();}catch(err){showError(err.message);}}
 function renderUsers(){
-  const levelNames={1:'مبتدئ ⚡️',2:'مبتدئ 🎉',3:'متوسط 🔥',4:'متقدم 🌟',5:'VIP 🚀'};
+  const lv={1:'مبتدئ ⚡️',2:'مبتدئ 🎉',3:'متوسط 🔥',4:'متقدم 🌟',5:'VIP 🚀'};
   let list=allUsers;
   if(userSearch)list=list.filter(u=>u.telegramId.includes(userSearch)||(u.username||'').toLowerCase().includes(userSearch.toLowerCase())||(u.firstName||'').includes(userSearch));
   document.getElementById('main-content').innerHTML=`
-    <div class="section-header"><div><div class="section-title">👥 المستخدمون</div><div class="section-subtitle">${allUsers.length} مستخدم مسجل</div></div></div>
-    <div class="filter-bar"><input class="filter-search" placeholder="بحث بالاسم أو ID..." style="width:280px;margin-right:0" oninput="userSearch=this.value;renderUsers()" value="${userSearch}"/></div>
+    <div class="section-header"><div><div class="section-title">👥 المستخدمون</div><div class="section-subtitle">${allUsers.length} مستخدم</div></div></div>
+    <div class="filter-bar"><input class="filter-search" placeholder="بحث بالاسم أو ID..." style="max-width:300px" oninput="userSearch=this.value;renderUsers()" value="${userSearch}"/></div>
     <div class="table-wrap"><table>
-      <thead><tr><th>المستخدم</th><th>Telegram ID</th><th>الرصيد</th><th>المستوى</th><th>البوت</th><th>الإحالات</th><th>الإيداعات</th><th>السحوبات</th><th>تاريخ التسجيل</th><th>إجراء</th></tr></thead>
-      <tbody>${list.length===0?`<tr><td colspan="10"><div class="empty"><div class="empty-icon">👤</div>لا يوجد مستخدمون</div></td></tr>`:
-        list.map(u=>{
-          const name=[u.firstName,u.lastName].filter(Boolean).join(' ')||u.username||'—';
-          const init=(name[0]||'?').toUpperCase();
-          return `<tr>
-            <td><div class="user-info"><div class="user-avatar">${init}</div><div><div style="font-weight:600">${name}</div><div style="color:var(--muted);font-size:11px">@${u.username||'بدون'}</div></div></div></td>
-            <td class="mono">${u.telegramId}</td>
-            <td style="font-weight:700;color:var(--accent2)">${fmt(u.balance)} USDT</td>
-            <td style="font-size:12px">${u.isVip?'VIP 👑':(levelNames[u.accountLevel]||'—')}</td>
-            <td>${statusBadge(u.botStatus)}</td>
-            <td style="text-align:center">${u.invitedFriends||0}</td>
-            <td style="color:var(--success)">${fmt(u.totalDeposits)}</td>
-            <td style="color:var(--warning)">${fmt(u.totalWithdrawals)}</td>
-            <td style="color:var(--muted);font-size:12px">${fmtDate(u.createdAt)}</td>
-            <td><button class="btn btn-accent btn-sm" onclick='openBalanceModal(${JSON.stringify(u)})'>💰 رصيد</button></td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table></div>`;
+      <thead><tr><th>المستخدم</th><th>ID</th><th>الرصيد</th><th>المستوى</th><th>البوت</th><th>الإحالات</th><th>الإيداعات</th><th>تسجيل</th><th>إجراء</th></tr></thead>
+      <tbody>${list.length===0?`<tr><td colspan="9"><div class="empty"><div class="empty-icon">👤</div>لا يوجد مستخدمون</div></td></tr>`:
+        list.map(u=>{const name=[u.firstName,u.lastName].filter(Boolean).join(' ')||u.username||'—';return`<tr><td><div class="user-info"><div class="user-avatar">${(name[0]||'?').toUpperCase()}</div><div><div style="font-weight:600;font-size:13px">${name}</div><div style="color:var(--muted);font-size:11px">@${u.username||'—'}</div></div></div></td><td class="mono">${u.telegramId}</td><td style="font-weight:700;color:var(--accent2)">${fmt(u.balance)}</td><td style="font-size:12px">${u.isVip?'👑 VIP':(lv[u.accountLevel]||'—')}</td><td>${statusBadge(u.botStatus)}</td><td style="text-align:center">${u.invitedFriends||0}</td><td style="color:var(--success)">${fmt(u.totalDeposits)}</td><td style="color:var(--muted);font-size:11px">${fmtDate(u.createdAt)}</td><td><button class="btn btn-accent btn-sm" onclick='openBalanceModal(${JSON.stringify(u)})'>💰</button></td></tr>`;}).join('')}
+      </tbody></table></div>`;
 }
 
-// ── Deposit Modal ──
-function openDepositModal(id,action,deposit){
-  pendingAction={type:'deposit',id,action,data:deposit};
-  const ok=action==='approve';
-  document.getElementById('mdep-title').textContent=ok?'✔ قبول الإيداع':'✘ رفض الإيداع';
-  document.getElementById('mdep-subtitle').textContent=ok?'سيُضاف المبلغ الصافي لرصيد المستخدم':'سيُلغى الطلب';
-  const btn=document.getElementById('mdep-confirm-btn');
-  btn.textContent=ok?'تأكيد القبول':'تأكيد الرفض';btn.className=`btn ${ok?'btn-success':'btn-danger'}`;btn.disabled=false;
-  const r=document.getElementById('mdep-reason');r.style.display=ok?'none':'block';r.value='';
-  if(deposit)document.getElementById('mdep-info').innerHTML=`
-    <div class="modal-info-row"><span class="modal-info-label">المستخدم</span><span class="mono modal-info-value">${deposit.telegramId}</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">المبلغ</span><span class="modal-info-value" style="font-weight:700">${fmt(deposit.amount)} USDT</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">الرسوم (5%)</span><span class="modal-info-value" style="color:var(--warning)">${fmt(deposit.fee)} USDT</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">الصافي المضاف</span><span class="modal-info-value" style="color:var(--success);font-weight:700">${fmt(deposit.netAmount)} USDT</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">الشبكة</span><span class="modal-info-value"><span class="network-tag">${deposit.network||'TRC20'}</span></span></div>
-    <div class="modal-info-row"><span class="modal-info-label">التاريخ</span><span class="modal-info-value" style="color:var(--muted)">${fmtDate(deposit.createdAt)}</span></div>`;
-  document.getElementById('modal-deposit').classList.add('open');
-}
-async function confirmDepositAction(){
-  if(!pendingAction)return;
-  const{id,action}=pendingAction;
-  const reason=document.getElementById('mdep-reason').value.trim();
-  const btn=document.getElementById('mdep-confirm-btn');
-  btn.disabled=true;btn.textContent='جاري التنفيذ...';
-  try{
-    await apiFetch(`/admin/deposits/${id}/${action}`,{method:'POST',body:JSON.stringify({reason})});
-    closeModal('modal-deposit');
-    showToast(action==='approve'?'✔ تم قبول الإيداع وإضافة الرصيد':'✘ تم رفض الإيداع',action==='approve'?'success':'error');
-    await loadDeposits();loadBadges();
-  }catch(err){showToast('❌ فشل: '+err.message,'error');btn.disabled=false;btn.textContent=action==='approve'?'تأكيد القبول':'تأكيد الرفض';}
-}
-
-// ── Withdrawal Modal ──
-function openWithdrawalModal(id,action,w){
-  pendingAction={type:'withdrawal',id,action,data:w};
-  const ok=action==='complete';
-  document.getElementById('mwith-title').textContent=ok?'✔ تنفيذ السحب':'✘ رفض السحب';
-  document.getElementById('mwith-subtitle').textContent=ok?'سيُخصم المبلغ من رصيد المستخدم':'سيُلغى طلب السحب';
-  const btn=document.getElementById('mwith-confirm-btn');
-  btn.textContent=ok?'تأكيد التنفيذ':'تأكيد الرفض';btn.className=`btn ${ok?'btn-success':'btn-danger'}`;btn.disabled=false;
-  const r=document.getElementById('mwith-reason');r.style.display=ok?'none':'block';r.value='';
-  if(w)document.getElementById('mwith-info').innerHTML=`
-    <div class="modal-info-row"><span class="modal-info-label">المستخدم</span><span class="mono modal-info-value">${w.telegramId}</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">المبلغ</span><span class="modal-info-value" style="font-weight:700">${fmt(w.amount)} USDT</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">الرسوم (5%)</span><span class="modal-info-value" style="color:var(--warning)">${fmt(w.fee)} USDT</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">الصافي للمستخدم</span><span class="modal-info-value" style="color:var(--success);font-weight:700">${fmt(w.netAmount)} USDT</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">الشبكة</span><span class="modal-info-value"><span class="network-tag">${w.network||'TRC20'}</span></span></div>
-    <div class="modal-info-row"><span class="modal-info-label">عنوان المحفظة</span><span class="modal-info-value" style="font-family:monospace;font-size:12px;color:var(--accent2);word-break:break-all">${w.walletAddress||'—'}</span></div>
-    ${w.walletAddress?`<div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="copyText('${w.walletAddress}')">📋 نسخ العنوان</button></div>`:''}
-    <div class="modal-info-row" style="margin-top:8px"><span class="modal-info-label">التاريخ</span><span class="modal-info-value" style="color:var(--muted)">${fmtDate(w.createdAt)}</span></div>`;
-  document.getElementById('modal-withdrawal').classList.add('open');
-}
-async function confirmWithdrawalAction(){
-  if(!pendingAction)return;
-  const{id,action}=pendingAction;
-  const reason=document.getElementById('mwith-reason').value.trim();
-  const btn=document.getElementById('mwith-confirm-btn');
-  btn.disabled=true;btn.textContent='جاري التنفيذ...';
-  try{
-    await apiFetch(`/admin/withdrawals/${id}/${action}`,{method:'POST',body:JSON.stringify({reason})});
-    closeModal('modal-withdrawal');
-    showToast(action==='complete'?'✔ تم تنفيذ السحب':'✘ تم رفض السحب',action==='complete'?'success':'error');
-    await loadWithdrawals();loadBadges();
-  }catch(err){showToast('❌ فشل: '+err.message,'error');btn.disabled=false;}
-}
-
-// ── Balance Modal ──
-function openBalanceModal(user){
-  pendingBalanceUser=user;
-  const name=[user.firstName,user.lastName].filter(Boolean).join(' ')||user.username||user.telegramId;
-  document.getElementById('mbal-subtitle').textContent=`تعديل رصيد: ${name}`;
-  document.getElementById('mbal-info').innerHTML=`
-    <div class="modal-info-row"><span class="modal-info-label">المستخدم</span><span class="modal-info-value">${name}</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">Telegram ID</span><span class="mono modal-info-value">${user.telegramId}</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">الرصيد الحالي</span><span class="modal-info-value" style="color:var(--accent2);font-weight:700">${fmt(user.balance)} USDT</span></div>
-    <div class="modal-info-row"><span class="modal-info-label">المستوى</span><span class="modal-info-value">${user.accountLevel}</span></div>`;
-  document.getElementById('mbal-amount').value='';
-  document.getElementById('mbal-op').value='add';
-  document.getElementById('modal-balance').classList.add('open');
-}
-async function confirmBalanceAction(){
-  if(!pendingBalanceUser)return;
-  const amount=parseFloat(document.getElementById('mbal-amount').value);
-  const operation=document.getElementById('mbal-op').value;
-  if(isNaN(amount)||amount<0){showToast('❌ أدخل مبلغًا صحيحًا','error');return;}
-  try{
-    const res=await apiFetch(`/admin/users/${pendingBalanceUser.telegramId}/balance`,{method:'POST',body:JSON.stringify({amount,operation})});
-    closeModal('modal-balance');
-    showToast(`✔ الرصيد الجديد: ${fmt(res.balance)} USDT (مستوى ${res.level})`,'success');
-    await loadUsers();
-  }catch(err){showToast('❌ فشل: '+err.message,'error');}
-}
-
-// ── Notifications Page ──
 function loadNotify(){
   document.getElementById('main-content').innerHTML=`
-    <div class="section-header"><div>
-      <div class="section-title">📣 الإشعارات</div>
-      <div class="section-subtitle">إرسال رسالة لمستخدم أو لجميع المستخدمين</div>
-    </div></div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px">
-
-      <!-- إشعار فردي -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
-        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--accent2)">🎯 إشعار لمستخدم واحد</div>
-        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">أدخل Telegram ID والرسالة</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">Telegram ID</div>
-        <input id="n-single-id" class="modal-input" style="direction:ltr;margin-bottom:12px" placeholder="مثال: 123456789" type="number">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown: *bold* _italic_)</div>
-        <textarea id="n-single-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
-        <div style="margin-top:6px;display:flex;justify-content:flex-end;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-single-msg')">👁 معاينة</button>
+    <div class="section-header"><div><div class="section-title">📣 الإشعارات</div><div class="section-subtitle">إرسال رسائل للمستخدمين</div></div></div>
+    <div class="two-col">
+      <div class="card-box">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:var(--accent2)">🎯 إشعار فردي</div>
+        <div style="color:var(--muted);font-size:12px;margin-bottom:14px">إرسال لمستخدم واحد بـ ID</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Telegram ID</div>
+        <input id="n-single-id" class="modal-input" style="direction:ltr;margin-bottom:10px" placeholder="123456789" type="number">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">الرسالة (يدعم Markdown)</div>
+        <textarea id="n-single-msg" class="modal-input" rows="4" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة..."></textarea>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-single-msg')">👁</button>
           <button class="btn btn-accent" onclick="sendSingleNotify()">📤 إرسال</button>
         </div>
       </div>
-
-      <!-- broadcast -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
-        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--warning)">📢 إشعار جماعي</div>
-        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">يُرسل لجميع أو للنشطين فقط</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">المستهدفون</div>
-        <select id="n-bc-target" class="modal-input" style="direction:rtl;margin-bottom:12px;cursor:pointer">
-          <option value="all">📋 جميع المستخدمين</option>
-          <option value="active">🟢 النشطون فقط (البوت شغّال)</option>
-        </select>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown: *bold* _italic_)</div>
-        <textarea id="n-bc-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
-        <div style="margin-top:6px;display:flex;justify-content:flex-end;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-bc-msg')">👁 معاينة</button>
-          <button class="btn btn-warning" onclick="sendBroadcast()">📢 إرسال للجميع</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- نتيجة الإرسال -->
-    <div id="notify-result" style="display:none;margin-top:20px;max-width:900px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px"></div>
-
-    <!-- Modal معاينة -->
-    <div class="modal-overlay" id="modal-preview" onclick="if(event.target===this)closeModal('modal-preview')">
-      <div class="modal" style="max-width:380px">
-        <h2 style="margin-bottom:12px">👁 معاينة الرسالة</h2>
-        <div id="preview-body" style="background:var(--surface2);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14px;line-height:1.6;direction:rtl;text-align:right;max-height:300px;overflow-y:auto"></div>
-        <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-preview')">إغلاق</button></div>
-      </div>
-    </div>`;
-}
-
-async function sendSingleNotify(){
-  const telegramId = document.getElementById('n-single-id').value.trim();
-  const message    = document.getElementById('n-single-msg').value.trim();
-  if(!telegramId||!message){showToast('❌ أدخل Telegram ID والرسالة','error');return;}
-  try{
-    showToast('⏳ جاري الإرسال...','success');
-    const res = await apiFetch('/admin/notify/user',{method:'POST',body:JSON.stringify({telegramId,message})});
-    showNotifyResult(`✅ تم الإرسال بنجاح للمستخدم ${telegramId}`,'success');
-    showToast('✔ تم الإرسال','success');
-  }catch(err){showNotifyResult(`❌ فشل الإرسال: ${err.message}`,'error');showToast('❌ فشل','error');}
-}
-
-async function sendBroadcast(){
-  const message    = document.getElementById('n-bc-msg').value.trim();
-  const onlyActive = document.getElementById('n-bc-target').value === 'active';
-  if(!message){showToast('❌ أدخل الرسالة','error');return;}
-  const target = onlyActive ? 'النشطين فقط' : 'جميع المستخدمين';
-  if(!confirm(`سيتم إرسال الرسالة لـ ${target}. هل أنت متأكد؟`))return;
-  try{
-    showToast('⏳ جاري الإرسال...','success');
-    const res = await apiFetch('/admin/notify/broadcast',{method:'POST',body:JSON.stringify({message,onlyActive})});
-    showNotifyResult(`✅ اكتمل الإرسال — أُرسل: ${res.sent} | فشل: ${res.failed} | الإجمالي: ${res.total}`,'success');
-    showToast(`✔ أُرسل لـ ${res.sent} مستخدم`,'success');
-  }catch(err){showNotifyResult(`❌ فشل: ${err.message}`,'error');showToast('❌ فشل','error');}
-}
-
-function showNotifyResult(msg,type){
-  const el=document.getElementById('notify-result');
-  if(!el)return;
-  el.style.display='block';
-  el.style.borderColor=type==='success'?'var(--success)':'var(--danger)';
-  el.style.color=type==='success'?'var(--success)':'var(--danger)';
-  el.style.fontWeight='600';
-  el.textContent=msg;
-}
-
-function previewMsg(inputId){
-  const text=document.getElementById(inputId)?.value||'';
-  document.getElementById('preview-body').textContent=text||'(الرسالة فارغة)';
-  document.getElementById('modal-preview').classList.add('open');
-}
-
-// ── Notifications ──
-function loadNotify(){
-  document.getElementById('main-content').innerHTML=`
-    <div class="section-header"><div><div class="section-title">📣 الإشعارات</div><div class="section-subtitle">إرسال رسالة لمستخدم أو لجميع المستخدمين</div></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
-        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--accent2)">🎯 إشعار لمستخدم واحد</div>
-        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">أدخل Telegram ID والرسالة</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">Telegram ID</div>
-        <input id="n-single-id" class="modal-input" style="direction:ltr;margin-bottom:12px" placeholder="123456789" type="number">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown)</div>
-        <textarea id="n-single-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
+      <div class="card-box">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:var(--warning)">📢 إشعار جماعي</div>
+        <div style="color:var(--muted);font-size:12px;margin-bottom:14px">إرسال لجميع أو النشطين فقط</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">المستهدفون</div>
+        <select id="n-bc-target" class="modal-input" style="direction:rtl;margin-bottom:10px;cursor:pointer"><option value="all">📋 جميع المستخدمين</option><option value="active">🟢 النشطون فقط</option></select>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">الرسالة (يدعم Markdown)</div>
+        <textarea id="n-bc-msg" class="modal-input" rows="4" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة..."></textarea>
         <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-single-msg')">👁 معاينة</button>
-          <button class="btn btn-accent" onclick="sendSingleNotify()">📤 إرسال</button>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
-        <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--warning)">📢 إشعار جماعي</div>
-        <div style="color:var(--muted);font-size:12px;margin-bottom:18px">يُرسل لجميع أو للنشطين فقط</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">المستهدفون</div>
-        <select id="n-bc-target" class="modal-input" style="direction:rtl;margin-bottom:12px;cursor:pointer">
-          <option value="all">📋 جميع المستخدمين</option>
-          <option value="active">🟢 النشطون فقط</option>
-        </select>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right">الرسالة (يدعم Markdown)</div>
-        <textarea id="n-bc-msg" class="modal-input" rows="5" style="resize:vertical;font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب الرسالة هنا..."></textarea>
-        <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-bc-msg')">👁 معاينة</button>
+          <button class="btn btn-ghost btn-sm" onclick="previewMsg('n-bc-msg')">👁</button>
           <button class="btn btn-warning" onclick="sendBroadcast()">📢 إرسال</button>
         </div>
       </div>
     </div>
-    <div id="notify-result" style="display:none;margin-top:20px;max-width:900px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;font-weight:600"></div>
+    <div id="notify-result" style="display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-weight:600"></div>
     <div class="modal-overlay" id="modal-preview" onclick="if(event.target===this)closeModal('modal-preview')">
-      <div class="modal" style="max-width:400px">
-        <h2 style="margin-bottom:12px">👁 معاينة</h2>
-        <div id="preview-body" style="background:var(--surface2);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14px;line-height:1.6;direction:rtl;text-align:right;max-height:300px;overflow-y:auto"></div>
+      <div class="modal" style="max-width:400px"><h2 style="margin-bottom:12px">👁 معاينة</h2>
+        <div id="preview-body" style="background:var(--surface2);border-radius:8px;padding:14px;white-space:pre-wrap;font-size:14px;line-height:1.6;direction:rtl;text-align:right;max-height:280px;overflow-y:auto"></div>
         <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-preview')">إغلاق</button></div>
       </div>
     </div>`;
 }
 async function sendSingleNotify(){
-  const telegramId=document.getElementById('n-single-id').value.trim();
-  const message=document.getElementById('n-single-msg').value.trim();
-  if(!telegramId||!message){showToast('❌ أدخل Telegram ID والرسالة','error');return;}
-  try{
-    showToast('⏳ جاري الإرسال...','success');
-    await apiFetch('/admin/notify/user',{method:'POST',body:JSON.stringify({telegramId,message})});
-    const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--success)';r.style.color='var(--success)';r.textContent=`✅ تم الإرسال للمستخدم ${telegramId}`;showToast('✔ تم','success');
-  }catch(err){const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--danger)';r.style.color='var(--danger)';r.textContent=`❌ فشل: ${err.message}`;showToast('❌ فشل','error');}
+  const telegramId=document.getElementById('n-single-id').value.trim(),message=document.getElementById('n-single-msg').value.trim();
+  if(!telegramId||!message){showToast('❌ أدخل ID والرسالة','error');return;}
+  try{showToast('⏳ جاري الإرسال...','success');await apiFetch('/admin/notify/user',{method:'POST',body:JSON.stringify({telegramId,message})});const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--success)';r.style.color='var(--success)';r.textContent=`✅ تم الإرسال للمستخدم ${telegramId}`;showToast('✔ تم','success');}
+  catch(err){const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--danger)';r.style.color='var(--danger)';r.textContent=`❌ فشل: ${err.message}`;showToast('❌ فشل','error');}
 }
 async function sendBroadcast(){
-  const message=document.getElementById('n-bc-msg').value.trim();
-  const onlyActive=document.getElementById('n-bc-target').value==='active';
+  const message=document.getElementById('n-bc-msg').value.trim(),onlyActive=document.getElementById('n-bc-target').value==='active';
   if(!message){showToast('❌ أدخل الرسالة','error');return;}
-  if(!confirm(`سيتم إرسال الرسالة لـ ${onlyActive?'النشطين فقط':'جميع المستخدمين'}. متأكد؟`))return;
-  try{
-    showToast('⏳ جاري الإرسال...','success');
-    const res=await apiFetch('/admin/notify/broadcast',{method:'POST',body:JSON.stringify({message,onlyActive})});
-    const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--success)';r.style.color='var(--success)';r.textContent=`✅ أُرسل: ${res.sent} | فشل: ${res.failed} | الإجمالي: ${res.total}`;showToast(`✔ أُرسل لـ ${res.sent}`,'success');
-  }catch(err){const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--danger)';r.style.color='var(--danger)';r.textContent=`❌ فشل: ${err.message}`;showToast('❌ فشل','error');}
+  if(!confirm(`إرسال لـ ${onlyActive?'النشطين':'الجميع'}؟`))return;
+  try{showToast('⏳ جاري الإرسال...','success');const res=await apiFetch('/admin/notify/broadcast',{method:'POST',body:JSON.stringify({message,onlyActive})});const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--success)';r.style.color='var(--success)';r.textContent=`✅ أُرسل: ${res.sent} | فشل: ${res.failed} | الإجمالي: ${res.total}`;showToast(`✔ أُرسل لـ ${res.sent}`,'success');}
+  catch(err){const r=document.getElementById('notify-result');r.style.display='block';r.style.borderColor='var(--danger)';r.style.color='var(--danger)';r.textContent=`❌ فشل: ${err.message}`;showToast('❌ فشل','error');}
 }
 function previewMsg(id){const text=document.getElementById(id)?.value||'';document.getElementById('preview-body').textContent=text||'(فارغة)';document.getElementById('modal-preview').classList.add('open');}
 
-// ── Helpers ──
+function openDepositModal(id,action,deposit){
+  pendingAction={id,action};const ok=action==='approve';
+  document.getElementById('mdep-title').textContent=ok?'✔ قبول الإيداع':'✘ رفض الإيداع';
+  document.getElementById('mdep-subtitle').textContent=ok?'سيُضاف الصافي لرصيد المستخدم':'سيُلغى الطلب';
+  const btn=document.getElementById('mdep-confirm-btn');btn.textContent=ok?'تأكيد القبول':'تأكيد الرفض';btn.className=`btn ${ok?'btn-success':'btn-danger'}`;btn.disabled=false;
+  const r=document.getElementById('mdep-reason');r.style.display=ok?'none':'block';r.value='';
+  document.getElementById('mdep-info').innerHTML=`<div class="modal-info-row"><span class="modal-info-label">المستخدم</span><span class="mono modal-info-value">${deposit.telegramId}</span></div><div class="modal-info-row"><span class="modal-info-label">المبلغ</span><span class="modal-info-value" style="font-weight:700">${fmt(deposit.amount)} USDT</span></div><div class="modal-info-row"><span class="modal-info-label">الرسوم 5%</span><span class="modal-info-value" style="color:var(--warning)">${fmt(deposit.fee)} USDT</span></div><div class="modal-info-row"><span class="modal-info-label">الصافي</span><span class="modal-info-value" style="color:var(--success);font-weight:700">${fmt(deposit.netAmount)} USDT</span></div><div class="modal-info-row"><span class="modal-info-label">الشبكة</span><span class="network-tag">${deposit.network||'TRC20'}</span></div><div class="modal-info-row"><span class="modal-info-label">التاريخ</span><span style="color:var(--muted)">${fmtDate(deposit.createdAt)}</span></div>`;
+  document.getElementById('modal-deposit').classList.add('open');
+}
+async function confirmDepositAction(){
+  if(!pendingAction)return;const{id,action}=pendingAction,reason=document.getElementById('mdep-reason').value.trim(),btn=document.getElementById('mdep-confirm-btn');
+  btn.disabled=true;btn.textContent='جاري...';
+  try{await apiFetch(`/admin/deposits/${id}/${action}`,{method:'POST',body:JSON.stringify({reason})});closeModal('modal-deposit');showToast(action==='approve'?'✔ تم قبول الإيداع':'✘ تم رفض الإيداع',action==='approve'?'success':'error');await loadDeposits();loadBadges();}
+  catch(err){showToast('❌ فشل: '+err.message,'error');btn.disabled=false;btn.textContent=action==='approve'?'تأكيد القبول':'تأكيد الرفض';}
+}
+
+function openWithdrawalModal(id,action,w){
+  pendingAction={id,action};const ok=action==='complete';
+  document.getElementById('mwith-title').textContent=ok?'✔ تنفيذ السحب':'✘ رفض السحب';
+  document.getElementById('mwith-subtitle').textContent=ok?'سيُخصم من رصيد المستخدم':'سيُلغى الطلب';
+  const btn=document.getElementById('mwith-confirm-btn');btn.textContent=ok?'تأكيد التنفيذ':'تأكيد الرفض';btn.className=`btn ${ok?'btn-success':'btn-danger'}`;btn.disabled=false;
+  const r=document.getElementById('mwith-reason');r.style.display=ok?'none':'block';r.value='';
+  document.getElementById('mwith-info').innerHTML=`<div class="modal-info-row"><span class="modal-info-label">المستخدم</span><span class="mono modal-info-value">${w.telegramId}</span></div><div class="modal-info-row"><span class="modal-info-label">المبلغ</span><span class="modal-info-value" style="font-weight:700">${fmt(w.amount)} USDT</span></div><div class="modal-info-row"><span class="modal-info-label">الرسوم 5%</span><span class="modal-info-value" style="color:var(--warning)">${fmt(w.fee)} USDT</span></div><div class="modal-info-row"><span class="modal-info-label">الصافي</span><span class="modal-info-value" style="color:var(--success);font-weight:700">${fmt(w.netAmount)} USDT</span></div><div class="modal-info-row"><span class="modal-info-label">الشبكة</span><span class="network-tag">${w.network||'TRC20'}</span></div><div class="modal-info-row"><span class="modal-info-label">العنوان</span><span class="modal-info-value" style="font-family:monospace;font-size:11px;color:var(--accent2);word-break:break-all">${w.walletAddress||'—'}</span></div>${w.walletAddress?`<div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="copyText('${w.walletAddress}')">📋 نسخ</button></div>`:''}<div class="modal-info-row" style="margin-top:8px"><span class="modal-info-label">التاريخ</span><span style="color:var(--muted)">${fmtDate(w.createdAt)}</span></div>`;
+  document.getElementById('modal-withdrawal').classList.add('open');
+}
+async function confirmWithdrawalAction(){
+  if(!pendingAction)return;const{id,action}=pendingAction,reason=document.getElementById('mwith-reason').value.trim(),btn=document.getElementById('mwith-confirm-btn');
+  btn.disabled=true;btn.textContent='جاري...';
+  try{await apiFetch(`/admin/withdrawals/${id}/${action}`,{method:'POST',body:JSON.stringify({reason})});closeModal('modal-withdrawal');showToast(action==='complete'?'✔ تم تنفيذ السحب':'✘ تم رفض السحب',action==='complete'?'success':'error');await loadWithdrawals();loadBadges();}
+  catch(err){showToast('❌ فشل: '+err.message,'error');btn.disabled=false;}
+}
+
+function openBalanceModal(user){
+  pendingBalanceUser=user;const name=[user.firstName,user.lastName].filter(Boolean).join(' ')||user.username||user.telegramId;
+  document.getElementById('mbal-subtitle').textContent=`تعديل رصيد: ${name}`;
+  document.getElementById('mbal-info').innerHTML=`<div class="modal-info-row"><span class="modal-info-label">الاسم</span><span class="modal-info-value">${name}</span></div><div class="modal-info-row"><span class="modal-info-label">Telegram ID</span><span class="mono modal-info-value">${user.telegramId}</span></div><div class="modal-info-row"><span class="modal-info-label">الرصيد الحالي</span><span class="modal-info-value" style="color:var(--accent2);font-weight:700">${fmt(user.balance)} USDT</span></div><div class="modal-info-row"><span class="modal-info-label">المستوى</span><span class="modal-info-value">${user.accountLevel}</span></div>`;
+  document.getElementById('mbal-amount').value='';document.getElementById('mbal-op').value='add';
+  document.getElementById('modal-balance').classList.add('open');
+}
+async function confirmBalanceAction(){
+  if(!pendingBalanceUser)return;const amount=parseFloat(document.getElementById('mbal-amount').value),operation=document.getElementById('mbal-op').value;
+  if(isNaN(amount)||amount<0){showToast('❌ أدخل مبلغًا صحيحًا','error');return;}
+  try{const res=await apiFetch(`/admin/users/${pendingBalanceUser.telegramId}/balance`,{method:'POST',body:JSON.stringify({amount,operation})});closeModal('modal-balance');showToast(`✔ الرصيد الجديد: ${fmt(res.balance)} USDT`,'success');await loadUsers();}
+  catch(err){showToast('❌ فشل: '+err.message,'error');}
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open');pendingAction=null;}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id);}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(el=>closeModal(el.id));});
-
 function esc(obj){return JSON.stringify(obj).replace(/"/g,'&quot;');}
 function fmt(n){return Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleString('ar',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
 function statusBadge(s){const m={pending:'<span class="badge badge-pending">⏳ معلق</span>',completed:'<span class="badge badge-completed">✅ مكتمل</span>',rejected:'<span class="badge badge-rejected">❌ مرفوض</span>',processing:'<span class="badge badge-processing">⚙️ جاري</span>',active:'<span class="badge badge-active">🟢 نشط</span>',stopped:'<span class="badge badge-stopped">⏹️ متوقف</span>'};return m[s]||`<span class="badge">${s}</span>`;}
-
-function copyText(text){
-  navigator.clipboard.writeText(text).then(()=>showToast('✔ تم نسخ العنوان','success')).catch(()=>{
-    const el=document.createElement('textarea');el.value=text;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);showToast('✔ تم النسخ','success');
-  });
-}
-
+function copyText(text){navigator.clipboard.writeText(text).then(()=>showToast('✔ تم النسخ','success')).catch(()=>{const el=document.createElement('textarea');el.value=text;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);showToast('✔ تم النسخ','success');});}
 let toastTimer;
 function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className=`show ${type}`;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.className='';},3500);}
-function showError(msg){document.getElementById('main-content').innerHTML=`<div class="empty" style="margin-top:80px"><div class="empty-icon">⚠️</div><div style="color:var(--danger);font-weight:600">${msg}</div><button class="btn btn-ghost" style="margin-top:16px" onclick="showPage(currentPage)">إعادة المحاولة</button></div>`;}
-
+function showError(msg){document.getElementById('main-content').innerHTML=`<div class="empty" style="margin-top:80px"><div class="empty-icon">⚠️</div><div style="color:var(--danger);font-weight:600">${msg}</div><button class="btn btn-ghost" style="margin-top:14px" onclick="nav(currentPage)">إعادة المحاولة</button></div>`;}
 setInterval(()=>{if(API_KEY)loadBadges();},30000);
 </script>
 </body>

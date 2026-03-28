@@ -7,7 +7,7 @@ const TelegramBot          = require('node-telegram-bot-api');
 const connectDB            = require('./config/database');
 const config               = require('./config');
 const { registerHandlers } = require('./bot');
-const { applyDailyProfits, setBotInstance: setProfitBot } = require('./services/dailyProfitService');
+const { scheduleProfits, setBotInstance: setProfitBot } = require('./services/dailyProfitService');
 const { setBotInstance: setNotifyBot }          = require('./services/notifyService');
 const adminRouter          = require('./routes/admin');
 const logger               = require('./utils/logger');
@@ -20,24 +20,7 @@ app.use('/health', require('./routes/health'));
 app.use('/admin',  adminRouter);
 app.get('/', (_req, res) => res.json({ name: 'Telegram Investment Bot', version: '3.0.0', status: 'running' }));
 
-// ── Daily profit scheduler ────────────────────────────────────────────────────
-const scheduleDailyProfits = () => {
-  const runAtMidnight = () => {
-    const now      = new Date();
-    const midnight = new Date(now);
-    midnight.setHours(24, 0, 0, 0);
-    const delayMs  = midnight.getTime() - now.getTime();
-
-    setTimeout(async () => {
-      await applyDailyProfits();
-      scheduleDailyProfits();
-    }, delayMs);
-
-    logger.info(`Daily profit scheduled in ${Math.round(delayMs / 60000)} minutes`);
-  };
-
-  runAtMidnight();
-};
+// ── Profit scheduler (every 8h) ─────────────────────────────────────────────
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 const start = async () => {
@@ -58,7 +41,7 @@ const start = async () => {
   adminRouter.setBotInstance(bot);
 
   registerHandlers(bot);
-  scheduleDailyProfits();
+  scheduleProfits();
 
   const { port, env } = config.server;
   app.listen(port, () => {

@@ -14,7 +14,8 @@ const handleSupport = async (bot, chatId) => {
     const joined   = user ? new Date(user.createdAt).toLocaleDateString('ar') : '—';
 
     const supportLink    = config.support.link || `https://t.me/${config.support.username}`;
-    const adminTelegramId = config.admin.telegramId;
+    // أرسل للـ ID المخصص للدعم في .env (SUPPORT_TELEGRAM_ID)
+    const adminTelegramId = process.env.SUPPORT_TELEGRAM_ID || config.admin.telegramId;
 
     // ── رسالة اليوزر ─────────────────────────────────────────────────────────
     await bot.sendMessage(chatId,
