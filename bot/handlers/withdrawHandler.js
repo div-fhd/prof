@@ -12,7 +12,7 @@ const fmtH = (h) => {
   return mm > 0 ? `${hh} ساعة و${mm} دقيقة` : `${hh} ساعة`;
 };
 
-// ── شاشة السحب ───────────────────────────────────────────────────────────────
+// ── شاشة السحب الرئيسية ──────────────────────────────────────────────────────
 const handleWithdraw = async (bot, chatId) => {
   try {
     const user = await getUserById(chatId);
@@ -20,10 +20,10 @@ const handleWithdraw = async (bot, chatId) => {
 
     await bot.sendMessage(chatId,
       `💸 *سحب الأموال* 💸\n\n` +
-      `⚠️ رسوم السحب: *5 بالمئة*\n` +
-      `⏳ المعالجة: *من 2 إلى 7 أيام عمل*\n` +
-      `🔑 الحد الأدنى: *${config.bot.minWithdrawal} USDT*\n` +
-      `🛑 *شرط السحب:* يجب إيقاف البوت من 24 إلى 48 ساعة قبل السحب\n\n` +
+      `⚠️ *رسوم السحب:* 5 بالمئة\n` +
+      `🔑 *الحد الأدنى:* ${config.bot.minWithdrawal} USDT\n` +
+      `🛑 *شرط السحب:* أوقف البوت 12 ساعة قبل طلب السحب\n` +
+      `⏳ *مدة المعالجة:* من 24 إلى 48 ساعة\n\n` +
       `➖➖➖➖➖➖➖➖\n` +
       `💰 *الرصيد الحالي:* ${fmt(user.balance)} USDT\n` +
       `🤖 *حالة البوت:* ${user.botStatus === 'active' ? '🟢 نشط' : '🔴 متوقف'}`,
@@ -58,11 +58,11 @@ const handleWithdrawRequest = async (bot, chatId) => {
       await bot.sendMessage(chatId,
         `🛑 *يجب إيقاف البوت قبل السحب*\n\n` +
         `لضمان سلامة صفقاتك المفتوحة، يجب إيقاف البوت\n` +
-        `وانتظار من *24 إلى 48 ساعة* قبل تقديم طلب السحب.\n\n` +
+        `وانتظار *12 ساعة* قبل تقديم طلب السحب.\n\n` +
         `_هذا يضمن إغلاق جميع الصفقات بأمان._`,
         { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [
-          [{ text: '⏹️ إيقاف البوت الآن', callback_data: 'bot_stop'   }],
-          [{ text: '🔙 رجوع',              callback_data: 'back_main'  }],
+          [{ text: '⏹️ إيقاف البوت الآن', callback_data: 'bot_stop'  }],
+          [{ text: '🔙 رجوع',              callback_data: 'back_main' }],
         ]}});
       return;
     }
@@ -72,14 +72,14 @@ const handleWithdrawRequest = async (bot, chatId) => {
       const remaining = user.hoursUntilWithdraw();
       await bot.sendMessage(chatId,
         `⏳ *يرجى الانتظار قليلاً*\n\n` +
-        `يجب مرور *24 ساعة على الأقل* بعد إيقاف البوت لضمان\n` +
+        `يجب مرور *12 ساعة* بعد إيقاف البوت لضمان\n` +
         `إغلاق جميع الصفقات المفتوحة بشكل آمن.\n\n` +
         `➖➖➖➖➖➖➖➖\n` +
         `🕐 *الوقت المتبقي:* ${fmtH(remaining)}\n\n` +
         `_ستتمكن من السحب بعد اكتمال هذه المدة._`,
         { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [
-          [{ text: '👤 حسابي',  callback_data: 'my_account' }],
-          [{ text: '🔙 رجوع',   callback_data: 'back_main'  }],
+          [{ text: '👤 حسابي', callback_data: 'my_account' }],
+          [{ text: '🔙 رجوع',  callback_data: 'back_main'  }],
         ]}});
       return;
     }
@@ -89,9 +89,7 @@ const handleWithdrawRequest = async (bot, chatId) => {
       `💸 *طلب سحب*\n\n` +
       `💰 رصيدك: *${fmt(user.balance)} USDT*\n` +
       `🔑 الحد الأدنى: *${config.bot.minWithdrawal} USDT*\n\n` +
-      `⚠️ _تنبيه: إذا أصبح رصيدك بعد السحب أقل من 10 USDT سيتوقف البوت تلقائياً._
-
-🛑 _تأكد من إيقاف البوت 24-48 ساعة قبل السحب لإغلاق الصفقات._\n\n` +
+      `⚠️ _إذا أصبح رصيدك بعد السحب أقل من 10 USDT سيتوقف البوت تلقائياً._\n\n` +
       `أدخل المبلغ الذي تريد سحبه:\n_مثال: 50_\n\nاضغط ❌ إلغاء للعودة.`,
       { parse_mode: 'Markdown', ...cancelKeyboard() });
   } catch (err) {
@@ -124,7 +122,7 @@ const handleWithdrawAmountInput = async (bot, chatId, text) => {
     // تحذير إذا الرصيد المتبقي سيكون أقل من 10
     const remaining = user.balance - amount;
     const warning = remaining < 10 && remaining > 0
-      ? `\n\n⚠️ _تنبيه: رصيدك بعد السحب سيكون ${fmt(remaining)} USDT وسيتوقف البوت تلقائياً._`
+      ? `\n\n⚠️ _رصيدك بعد السحب سيكون ${fmt(remaining)} USDT وسيتوقف البوت تلقائياً._`
       : '';
 
     await setState(chatId, 'awaiting_withdrawal_network', { amount });
@@ -174,15 +172,16 @@ const handleWithdrawAddressInput = async (bot, chatId, text, stateData) => {
   }
 };
 
+// ── كيف يعمل السحب ───────────────────────────────────────────────────────────
 const handleHowItWorks = async (bot, chatId) => {
   try {
     await bot.sendMessage(chatId,
       `ℹ️ *كيف يعمل السحب؟*\n\n` +
       `🔹 *الشبكات المدعومة:* TRC20 / BEP20 / ERC20\n` +
       `🔹 *الرسوم:* 5 بالمئة من كل سحب\n` +
-      `🔹 *المعالجة:* 2 إلى 7 أيام عمل\n` +
       `🔹 *الحد الأدنى:* ${config.bot.minWithdrawal} USDT\n` +
-      `🔹 *شرط السحب:* إيقاف البوت 24-48 ساعة مسبقاً\n\n` +
+      `🔹 *شرط الإيقاف:* أوقف البوت 12 ساعة قبل طلب السحب\n` +
+      `🔹 *مدة المعالجة:* من 24 إلى 48 ساعة\n\n` +
       `📞 للاستفسار تواصل مع الدعم الفني.`,
       { parse_mode: 'Markdown', ...backOnlyKeyboard() });
   } catch (err) {

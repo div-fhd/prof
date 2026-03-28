@@ -75,14 +75,14 @@ userSchema.methods.canWithdraw = function () {
   if (this.botStatus === 'active') return false;
   if (!this.botStoppedAt) return true;
   const hours = (Date.now() - this.botStoppedAt.getTime()) / 3_600_000;
-  return hours >= 24;
+  return hours >= 12;
 };
 
 // كم ساعة تبقى لاكتمال الـ 12 ساعة
 userSchema.methods.hoursUntilWithdraw = function () {
   if (!this.botStoppedAt) return 0;
   const hours = (Date.now() - this.botStoppedAt.getTime()) / 3_600_000;
-  return Math.max(0, 24 - hours);
+  return Math.max(0, 12 - hours);
 };
 
 userSchema.methods.ensureReferralCode = async function () {
